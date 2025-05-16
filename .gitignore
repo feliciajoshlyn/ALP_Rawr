@@ -1,2 +1,3 @@
 *.xcuserstate
-Config/GoogleService-Info-6.plist
+Config/GoogleService-Info.plist
+.DS_Store
