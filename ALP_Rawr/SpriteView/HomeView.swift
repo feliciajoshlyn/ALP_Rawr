@@ -21,7 +21,7 @@ struct HomeView: View {
     
     var body: some View {
         VStack {
-            Text("🐾 Home Menu") // Example UI above
+            Text("🐾 Dog Home Menu") // Example UI above
                 .font(.title)
 
             SpriteView(scene: scene)
