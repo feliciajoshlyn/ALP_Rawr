@@ -12,6 +12,6 @@ struct MyUser{
     var username: String = ""
     var email: String = ""
     var password : String = ""
-    var uuid: String = ""
+    var uuid : String = UUID().uuidString
     //tidak perlu token karena dimanage oleh firebase
 }

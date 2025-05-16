@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseAuth
 @MainActor
-class authViewModel: ObservableObject {
+class AuthViewModel: ObservableObject {
     
     @Published var user: User?
     @Published var isSigningIn: Bool
@@ -33,6 +33,36 @@ class authViewModel: ObservableObject {
         do {
             try Auth.auth().signOut()
         }catch {
+            
+        }
+    }
+    
+    func signIn() async {
+        do{
+            _ = try await Auth.auth().signIn(withEmail: myUser.email, password: myUser.password)
+            
+            DispatchQueue.main.async {
+                self.falseCredential = false
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.falseCredential = true
+            }
+            
+        }
+    }
+    
+    func signUp() async {
+        do{
+            _ = try await Auth.auth().createUser(withEmail: myUser.email, password: myUser.password)
+            
+            DispatchQueue.main.async {
+                self.falseCredential = false
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.falseCredential = true
+            }
             
         }
     }
