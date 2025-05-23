@@ -7,11 +7,12 @@
 
 import Foundation
 
-struct EmotionModel {
+struct EmotionModel: Codable {
     let name: String
     var level: Int
     let limit: Int
     let priority: Int
+    let icon: String
     
     var isActive: Bool {
         return level >= limit
