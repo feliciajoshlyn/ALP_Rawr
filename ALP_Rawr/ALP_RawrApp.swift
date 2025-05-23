@@ -12,6 +12,7 @@ struct ALP_RawrApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+//            HomeView()
         }
     }
 }
