@@ -21,6 +21,8 @@ class SpriteScene: SKScene {
     private var walkAnimationTimer: TimeInterval = 0
     private var isWalking = false
     private var targetX: CGFloat = 0
+    
+    var onPet: (() -> Void)?
 
     override func didMove(to view: SKView) {
         backgroundColor = .white
@@ -100,5 +102,14 @@ class SpriteScene: SKScene {
         spriteModel.movementState = .idle
         updateIdleTexture()
         chooseNextAction()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+
+        if spriteNode.contains(location) {
+            onPet?()
+        }
     }
 }

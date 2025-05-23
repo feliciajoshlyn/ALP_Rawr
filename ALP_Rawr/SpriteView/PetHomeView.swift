@@ -8,7 +8,7 @@
 import SwiftUI
 import SpriteKit
 
-struct HomeView: View {
+struct PetHomeView: View {
     let screenWidth = UIScreen.main.bounds.width
     let screenHeight = UIScreen.main.bounds.height
     
@@ -27,6 +27,11 @@ struct HomeView: View {
             SpriteView(scene: scene)
                 .frame(width: 300, height: 400)
                 .background(Color.clear)
+                .onAppear {
+                    scene.onPet = {
+                        print("Petted Dog")
+                    }
+                }
 
             Button("Say Hi to Dog") {
                 // Example future interaction
@@ -37,5 +42,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView()
+    PetHomeView()
 }
