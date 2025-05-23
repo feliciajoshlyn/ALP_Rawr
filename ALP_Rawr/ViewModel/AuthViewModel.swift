@@ -33,14 +33,14 @@ class AuthViewModel: ObservableObject {
     func checkUserSession(){
         //check jika pernah login, kl login akan return user
         self.user = Auth.auth().currentUser
-        self.isSigningIn = true
+        self.isSigningIn = self.user != nil
     }
     
     func signOut(){
         do {
             try Auth.auth().signOut()
         }catch {
-            
+            print(error.localizedDescription)
         }
     }
     

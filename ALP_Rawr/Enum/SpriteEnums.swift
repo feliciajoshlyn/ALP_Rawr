@@ -20,3 +20,9 @@ enum MovementState {
 enum DogDirection {
     case left, right
 }
+
+enum InteractionType {
+    case petting
+    case feeding
+    case walking
+}

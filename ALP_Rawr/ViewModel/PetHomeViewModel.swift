@@ -12,18 +12,53 @@ import FirebaseAuth
 class PetHomeViewModel: ObservableObject {
     
     @Published var pet: PetModel = PetModel()
+//    @Published var pet: PetModel = PetModel(
+//        name: "",
+//        hp: 100,
+//        isHungry: false,
+//        bond: 0,
+//        lastFed: Date(),
+//        lastPetted: Date(),
+//        lastWalked: Date(),
+//        currMood: "Happy",
+//        emotions: [
+//            "Happy":EmotionModel(
+//                name: "Happy",
+//                level: 30,
+//                limit: 40,
+//                priority: 1,
+//                icon: "happybadge"
+//            ),
+//            "Sad":EmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
+//            "Angry":EmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
+//            "Bored":EmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
+//            "Fear":EmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
+//        ],
+//        userId: ""
+//    )
     @Published var currEmotion: String = "Happy"
     @Published var icon: String = "happybadge"
     
     private var ref: DatabaseReference
-    private var user: User? = Auth.auth().currentUser
+    private var user: User?
     
-    init() async {
+    init() {
         self.ref = Database.database().reference().child("pets")
-        await self.fetchPetData(userId: user!.uid)
+//        self.user = Auth.auth().currentUser
+        
+//        if let uid = user?.uid {
+//            // Defer the call to ensure self is fully initialized first
+//            DispatchQueue.main.async {
+//                self.fetchPetData(userId: uid)
+//            }
+//        } else {
+//            print("User not authenticated.")
+//        }
     }
     
-    func fetchPetData(userId: String) async {
+    func fetchPetData() {
+        self.user = Auth.auth().currentUser
+        let userId = user!.uid
         ref.child(userId).observeSingleEvent(of: .value) { snapshot in
             guard let petDict = snapshot.value as? [String: Any],
                   let jsonData = try? JSONSerialization.data(withJSONObject: petDict),
@@ -40,25 +75,21 @@ class PetHomeViewModel: ObservableObject {
         }
     }
     
-    func petting(){
-        for _ in 0..<pet.emotions.count {
-            if var happy = pet.emotions["Happy"] {
-                happy.level = min(happy.level + 10, 100)
-                pet.emotions["Happy"] = happy
-            } else if var sad = pet.emotions["Sad"] {
-                sad.level = max(sad.level - 8, 0)
-                pet.emotions["Sad"] = sad
-            } else if var angry = pet.emotions["Angry"] {
-                angry.level = max(angry.level - 6, 0)
-                pet.emotions["Angry"] = angry
-            } else if var bored = pet.emotions["Bored"] {
-                bored.level = max(bored.level - 4, 0)
-                pet.emotions["Bored"] = bored
-            } else if var fear = pet.emotions["Fear"] {
-                fear.level = max(fear.level - 10, 0)
-                pet.emotions["Fear"] = fear
+    func applyInteraction(_ type: InteractionType) {
+        guard let changes = InteractionEffect.effects[type] else { return }
+
+        for (emotionName, num) in changes {
+            if var emotion = pet.emotions[emotionName] {
+                emotion.apply(change: num)
+                pet.emotions[emotionName] = emotion
             }
         }
+        
+        if type == .petting {
+            pet.lastPetted = Date()
+        }
+        
+        self.checkCurrEmotion()
     }
     
     func checkCurrEmotion(){

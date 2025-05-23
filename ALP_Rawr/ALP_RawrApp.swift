@@ -12,6 +12,7 @@ import FirebaseAppCheck
 @main
 struct ALP_RawrApp: App {
     @StateObject private var authViewModel = AuthViewModel()
+    @StateObject private var petHomeViewModel = PetHomeViewModel()
     
     init(){
         FirebaseApp.configure()
@@ -25,8 +26,9 @@ struct ALP_RawrApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainView()
                 .environmentObject(authViewModel)
+                .environmentObject(petHomeViewModel)
         }
     }
 }

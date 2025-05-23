@@ -17,4 +17,8 @@ struct EmotionModel: Codable {
     var isActive: Bool {
         return level >= limit
     }
+    
+    mutating func apply(change: Int){
+        self.level = max(0, min(100, self.level + change))
+    }
 }
