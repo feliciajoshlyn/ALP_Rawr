@@ -15,18 +15,25 @@ struct MainView: View {
         TabView{
             PetHomeView()
                 .tabItem{
-                    Image(systemName: "house")
+                    Image(systemName: "pawprint.fill")
                     Text("Home")
                 }
             
             SocialView()
                 .tabItem{
-                    Image(systemName: "house")
+                    Image(systemName: "person.2.fill")
+                    Text("Social")
+                }
+            
+            EmotionGalleryView()
+                .tabItem{
+                    Image(systemName: "book.pages")
+                    Text("Emotions")
                 }
             
             ProfileView(showAuthSheet: $showAuthSheet)
                 .tabItem {
-                    Image(systemName: "person")
+                    Image(systemName: "person.crop.circle.fill")
                     Text("Profile")
                 }
             
