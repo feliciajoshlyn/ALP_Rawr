@@ -47,6 +47,7 @@ class PetHomeViewModel: ObservableObject {
             self.pet = PetModel(
                 name: "Default",
                 hp: 100,
+                hunger: 100,
                 isHungry: false,
                 bond: 0,
                 lastFed: Date(),

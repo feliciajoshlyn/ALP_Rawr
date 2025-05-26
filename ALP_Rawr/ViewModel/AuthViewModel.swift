@@ -99,6 +99,7 @@ class AuthViewModel: ObservableObject {
         return PetModel(
             name: "",
             hp: 100,
+            hunger: 100,
             isHungry: false,
             bond: 0,
             lastFed: now,

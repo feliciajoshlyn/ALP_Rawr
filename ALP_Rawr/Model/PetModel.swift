@@ -10,6 +10,7 @@ import Foundation
 struct PetModel: Codable {
     var name: String = ""
     var hp: Int = 100
+    var hunger: Int = 100
     var isHungry: Bool = false
     var bond: Int = 0
     var lastFed: Date = Date()
