@@ -12,6 +12,7 @@
 		3FE5DE502DD6EB0500C2A050 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE5DE4F2DD6EB0500C2A050 /* FirebaseAuth */; };
 		3FE5DE522DD6EB0500C2A050 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE5DE512DD6EB0500C2A050 /* FirebaseCore */; };
 		3FE5DE542DD6EB0500C2A050 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE5DE532DD6EB0500C2A050 /* FirebaseDatabase */; };
+		C1E135072DE5875F0080F1E3 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C1E135062DE5875F0080F1E3 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +66,7 @@
 				3FE5DE502DD6EB0500C2A050 /* FirebaseAuth in Frameworks */,
 				3FE5DE522DD6EB0500C2A050 /* FirebaseCore in Frameworks */,
 				3FE5DE4C2DD6EB0500C2A050 /* FirebaseAnalytics in Frameworks */,
+				C1E135072DE5875F0080F1E3 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +132,7 @@
 				3FE5DE4F2DD6EB0500C2A050 /* FirebaseAuth */,
 				3FE5DE512DD6EB0500C2A050 /* FirebaseCore */,
 				3FE5DE532DD6EB0500C2A050 /* FirebaseDatabase */,
+				C1E135062DE5875F0080F1E3 /* FirebaseFirestore */,
 			);
 			productName = ALP_Rawr;
 			productReference = 3F8353842DD6D82B00122435 /* ALP_Rawr.app */;
@@ -423,6 +426,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -450,6 +454,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -608,6 +613,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3FE5DE4A2DD6EB0500C2A050 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseDatabase;
+		};
+		C1E135062DE5875F0080F1E3 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3FE5DE4A2DD6EB0500C2A050 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
