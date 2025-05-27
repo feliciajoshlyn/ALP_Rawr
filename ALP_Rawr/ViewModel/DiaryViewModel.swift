@@ -9,17 +9,21 @@ import Foundation
 
 class DiaryViewModel : ObservableObject{
     @Published var diary: [DiaryEntry] = []
+    @Published var friends: [String] = []
+
     @Published var isLoading = false
     
     private let diaryService = DiaryService.shared
     
-        
     func loadEntries(for userId: String) {
         isLoading = true
-        diaryService.fetchDiaryEntries(forUserId: userId) { entries in
-            DispatchQueue.main.async {
-                self.diary = entries
-                self.isLoading = false
+        
+        diaryService.fetchFriends(userId: userId) { friends in
+            self.diaryService.fetchDiaryWithFriends(userId: userId, friends: friends) { entries in
+                DispatchQueue.main.async {
+                    self.diary = entries
+                    self.isLoading = false
+                }
             }
         }
     }
@@ -29,7 +33,6 @@ class DiaryViewModel : ObservableObject{
             DispatchQueue.main.async {
                 if success {
                     print("Diary Entry added Successfully")
-                    // Optionally reload entries or add the entry to the local array
                 } else {
                     print("Failed to add Diary Entry")
                 }
@@ -53,6 +56,24 @@ class DiaryViewModel : ObservableObject{
                 print("Successfully added reaction")
             } else {
                 print("Failed to add reaction")
+            }
+        }
+    }
+    
+    func addFriend(from currentUserId: String, to friendId: String) {
+        diaryService.addFriend(currentUserId: currentUserId, friendId: friendId) {success in
+            if success {
+                print( "Successfully added friend")
+            } else {
+                print( "Failed to add friend")
+            }
+        }
+    }
+    
+    func showFriends(for userId: String){
+        diaryService.fetchFriends(userId: userId) { friends in
+            DispatchQueue.main.async {
+                self.friends = friends
             }
         }
     }

@@ -30,24 +30,25 @@ struct DiaryView: View {
                 .padding(.top, 8)
             }
             .navigationTitle("My Diary ⭐️")
-            .onAppear {
-                diaryViewModel.loadEntries(for: authViewModel.myUser.uid)
-            }
-            .refreshable {
-                diaryViewModel.loadEntries(for: authViewModel.myUser.uid)
-            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         showingAddFriendSheet = true
                     }) {
-                        Label("Add Friend", systemImage: "person.badge.plus")
+                        Label("My Friends", systemImage: "person.badge.plus")
                     }
                 }
             }
             .sheet(isPresented: $showingAddFriendSheet) {
                 AddFriendView()
             }
+            .onAppear {
+                diaryViewModel.loadEntries(for: authViewModel.myUser.uid)
+            }
+            .refreshable {
+                diaryViewModel.loadEntries(for: authViewModel.myUser.uid)
+            }
+            
         }
     }
     
@@ -76,7 +77,7 @@ struct AddFriendView: View {
     var body: some View {
         NavigationStack {
             Text("Add your friends here!")
-                .navigationTitle("Add Friend")
+                .navigationTitle("My Friends")
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Done") {

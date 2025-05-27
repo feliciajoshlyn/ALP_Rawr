@@ -7,6 +7,8 @@
 
 import Foundation
 import FirebaseAuth
+import FirebaseFirestore
+
 @MainActor
 class AuthViewModel: ObservableObject {
     
@@ -38,32 +40,63 @@ class AuthViewModel: ObservableObject {
     }
     
     func signIn() async {
-        do{
-            _ = try await Auth.auth().signIn(withEmail: myUser.email, password: myUser.password)
+        do {
+            let result = try await Auth.auth().signIn(withEmail: myUser.email, password: myUser.password)
+            let user = result.user
+
+            //access firestore
+            let db = Firestore.firestore()
+            //get firestore sesuai dengan nama uid like users/uid spt id
+            let userRef = db.collection("users").document(user.uid)
+            //wait so they get the document
+            let snapshot = try await userRef.getDocument()
             
+            //if missing
+            if !snapshot.exists {
+                //set data utk user uid tersebut
+                try await userRef.setData([
+                    "email": user.email ?? "",
+                    "username": myUser.username,
+                    "friends": []
+                ])
+            }
+
             DispatchQueue.main.async {
                 self.falseCredential = false
+                self.user = user
+                self.myUser.uid = user.uid
             }
         } catch {
             DispatchQueue.main.async {
                 self.falseCredential = true
             }
-            
         }
     }
+
     
     func signUp() async {
-        do{
-            _ = try await Auth.auth().createUser(withEmail: myUser.email, password: myUser.password)
+        do {
+            let result = try await Auth.auth().createUser(withEmail: myUser.email, password: myUser.password)
+            let user = result.user
+            
+            let db = Firestore.firestore()
+            let userRef = db.collection("users").document(user.uid)
+            try await userRef.setData([
+                "email": user.email ?? "",
+                "username": myUser.username,
+                "friends": []
+            ])
             
             DispatchQueue.main.async {
                 self.falseCredential = false
+                self.user = user
+                self.myUser.uid = user.uid
             }
         } catch {
             DispatchQueue.main.async {
                 self.falseCredential = true
             }
-            
         }
     }
+
 }
