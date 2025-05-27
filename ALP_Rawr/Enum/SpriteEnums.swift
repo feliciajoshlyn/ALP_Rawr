@@ -25,4 +25,5 @@ enum InteractionType {
     case petting
     case feeding
     case walking
+    case showering
 }

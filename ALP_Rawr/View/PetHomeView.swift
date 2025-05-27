@@ -27,6 +27,7 @@ struct PetHomeView: View {
         let scene = SpriteScene()
         scene.size = CGSize(width: UIScreen.main.bounds.width / 2, height: UIScreen.main.bounds.height)
         scene.scaleMode = .resizeFill
+        scene.backgroundColor = .clear
         return scene
     }()
     
@@ -87,53 +88,29 @@ struct PetHomeView: View {
                     
                     ZStack{
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white)
+                            .fill(Color.white.opacity(0.9))
                             .shadow(radius: 5)
                         
                         SpriteView(scene: scene)
-                            .frame(width: 300, height: 400)
-                            .background(Color.white)
+                            .frame(width: 350, height: 600)
+                            .background(Color.clear)
                             .onAppear {
                                 scene.onPet = {
                                     petHomeViewModel.applyInteraction(.petting)
+                                }
+                                
+                                scene.onShower = {
+                                    print("Mandikan")
+                                }
+                                
+                                scene.onShower = {
+                                    print("Kasih makan")
                                 }
                             }
                     }
                     .padding(.horizontal, 20)
                     
                     Spacer()
-                    
-                    //Items
-                    VStack(spacing: 15) {
-                        HStack(spacing: 15){
-                            // Feed button
-                            actionButton(
-                                icon: "fork.knife",
-                                title: "Feed",
-                                color: .orange
-                            ) {
-                                print("Feed pet")
-                            }
-                            
-                            // Play button
-                            actionButton(
-                                icon: "gamecontroller.fill",
-                                title: "Play",
-                                color: .purple
-                            ) {
-                                print("Play with pet")
-                            }
-                            
-                            // Clean button
-                            actionButton(
-                                icon: "shower.fill",
-                                title: "Clean",
-                                color: .blue
-                            ) {
-                                print("Clean pet")
-                            }
-                        }
-                    }
                 }
             }
 //        }
