@@ -105,6 +105,8 @@ class AuthViewModel: ObservableObject {
             lastFed: now,
             lastPetted: now,
             lastWalked: now,
+            lastShower: now,
+            lastChecked: now,
             currMood: "Happy",
             emotions: [
                 "Happy":EmotionModel(

@@ -19,8 +19,14 @@ class PetHomeViewModel: ObservableObject {
     private var user: User?
     private(set) var hasFetchData: Bool = false
     
+    private var timer: Timer?
+    
     init() {
         self.ref = Database.database().reference().child("pets")
+    }
+    
+    deinit {
+        timer?.invalidate()
     }
     
     func fetchPetData() {
@@ -53,6 +59,8 @@ class PetHomeViewModel: ObservableObject {
                 lastFed: Date(),
                 lastPetted: Date(),
                 lastWalked: Date(),
+                lastShower: Date(),
+                lastChecked: Date(),
                 currMood: "Happy",
                 emotions: [
                     "Happy":EmotionModel(
@@ -72,6 +80,33 @@ class PetHomeViewModel: ObservableObject {
         }
     }
     
+//    func fetchPetData() {
+//        guard !hasFetchData else { return }
+//        hasFetchData = true
+//        
+//        self.user = Auth.auth().currentUser
+//        if let userId = user?.uid {
+//            ref.child(userId).observeSingleEvent(of: .value) { snapshot in
+//                guard let petDict = snapshot.value as? [String: Any],
+//                      let jsonData = try? JSONSerialization.data(withJSONObject: petDict),
+//                      let pet = try? JSONDecoder().decode(PetModel.self, from: jsonData)
+//                else {
+//                    print("Failed to decode pet data.")
+//                    self.pet = PetModel()
+//                    return
+//                }
+//                
+//                DispatchQueue.main.async {
+//                    self.pet = pet
+//                    self.startTimer() // ✅ Start timer after pet is set
+//                }
+//            }
+//        } else {
+//            self.pet = PetModel(...) // default model
+//            self.startTimer() // ✅ Still start timer if using default
+//        }
+//    }
+    
     func applyInteraction(_ type: InteractionType) {
         guard let changes = InteractionEffect.effects[type] else { return }
 
@@ -84,6 +119,10 @@ class PetHomeViewModel: ObservableObject {
         
         if type == .petting {
             pet.lastPetted = Date()
+        } else if type == .feeding {
+            pet.lastFed = Date()
+        } else if type == .showering {
+            pet.lastShower = Date()
         }
         
         self.checkCurrEmotion()
@@ -110,4 +149,65 @@ class PetHomeViewModel: ObservableObject {
             self.icon = "happybadge"
         }
     }
+    
+    func updatePetStatusPeriodically() {
+        let now = Date()
+        let lastChecked = pet.lastChecked
+        let timePassed = now.timeIntervalSince(lastChecked) // in seconds
+        
+        guard timePassed >= 60 else { return } // Only update if at least 1 minute has passed
+        
+        let minutesPassed = Int(timePassed / 60)
+        
+        // Adjust Hunger (every minute decreases by 1)
+        pet.hunger = max(0, pet.hunger - minutesPassed)
+        pet.isHungry = pet.hunger < 40
+
+        // Adjust HP based on lack of interaction
+        let hoursSinceFed = Int(now.timeIntervalSince(pet.lastFed) / 3600)
+        let hoursSincePetted = Int(now.timeIntervalSince(pet.lastPetted) / 3600)
+        let hoursSinceWalked = Int(now.timeIntervalSince(pet.lastWalked) / 3600)
+        let hoursSinceShowered = Int(now.timeIntervalSince(pet.lastShower) / 3600)
+
+        // HP decays slightly if hunger is very low or if neglected
+        if pet.hunger < 20 {
+            pet.hp = max(0, pet.hp - minutesPassed / 2)
+        }
+        if hoursSinceFed > 6 || hoursSincePetted > 8 || hoursSinceWalked > 12 || hoursSinceShowered > 24 {
+            pet.hp = max(0, pet.hp - minutesPassed / 3)
+        }
+
+        // Increase emotion levels based on neglect
+        for (name, emotion) in pet.emotions {
+            var updated = emotion
+            switch name {
+            case "Sad":
+                updated.level = min(100, updated.level + (hoursSincePetted > 8 ? minutesPassed / 3 : 0))
+            case "Angry":
+                updated.level = min(100, updated.level + (hoursSinceFed > 6 ? minutesPassed / 4 : 0))
+            case "Bored":
+                updated.level = min(100, updated.level + (hoursSinceWalked > 12 ? minutesPassed / 2 : 0))
+            case "Fear":
+                updated.level = min(100, updated.level + (hoursSinceShowered > 24 ? minutesPassed / 2 : 0))
+            case "Happy":
+                updated.level = max(0, updated.level - minutesPassed / 2)
+            default:
+                break
+            }
+            pet.emotions[name] = updated
+        }
+
+        pet.lastChecked = now
+        checkCurrEmotion()
+    }
+    
+    private func startTimer() {
+        timer?.invalidate() // in case it's called twice
+        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.updatePetStatusPeriodically()
+            }
+        }
+    }
+
 }

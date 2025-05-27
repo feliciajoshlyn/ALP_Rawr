@@ -16,6 +16,8 @@ struct PetModel: Codable {
     var lastFed: Date = Date()
     var lastPetted: Date = Date()
     var lastWalked: Date = Date()
+    var lastShower: Date = Date()
+    var lastChecked: Date = Date()
     var currMood: String = "Happy"
     var emotions: [String:EmotionModel] = [:]
     var userId: String = ""

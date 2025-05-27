@@ -29,6 +29,13 @@ struct InteractionEffect {
             "Angry": -8,
             "Bored": -15,
             "Fear": -10
+        ],
+        .showering: [
+            "Happy": +4,
+            "Sad": +2,
+            "Angry": +10,
+            "Bored": -2,
+            "Fear": +12
         ]
     ]
 }

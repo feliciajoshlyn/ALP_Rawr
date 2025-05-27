@@ -50,6 +50,7 @@ struct PetHomeView: View {
         }
         .onAppear {
             petHomeViewModel.fetchPetData()
+            petHomeViewModel.checkCurrEmotion()
         }
     }
     
@@ -148,12 +149,10 @@ struct PetHomeView: View {
                         
                         scene.onShower = {
                             petHomeViewModel.applyInteraction(.showering)
-                            print("Pet is being cleaned!")
                         }
                         
                         scene.onFeed = {
                             petHomeViewModel.applyInteraction(.feeding)
-                            print("Pet is being fed!")
                         }
                     }
             }
