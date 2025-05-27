@@ -9,21 +9,30 @@ import Foundation
 
 class DiaryViewModel : ObservableObject{
     @Published var diary: [DiaryEntry] = []
+    @Published var isLoading = false
     
     private let diaryService = DiaryService.shared
+    
         
-    func loadEntries(for tamagotchiId: String) {
-        diaryService.fetchDiaryEntries(forTamagotchiId: tamagotchiId) { entries in
-            self.diary = entries
+    func loadEntries(for userId: String) {
+        isLoading = true
+        diaryService.fetchDiaryEntries(forUserId: userId) { entries in
+            DispatchQueue.main.async {
+                self.diary = entries
+                self.isLoading = false
+            }
         }
     }
     
     func addEntry(_ entry: DiaryEntry) {
         diaryService.addDiaryEntry(_entry: entry) { success in
-            if success {
-                print("Diary Entry added Successfully")
-            } else {
-                print("Failed to add Diary Entry")
+            DispatchQueue.main.async {
+                if success {
+                    print("Diary Entry added Successfully")
+                    // Optionally reload entries or add the entry to the local array
+                } else {
+                    print("Failed to add Diary Entry")
+                }
             }
         }
     }

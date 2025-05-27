@@ -14,9 +14,9 @@ class DiaryService{
     private let db = Firestore.firestore()
     private init() {}
     
-    func fetchDiaryEntries(forTamagotchiId tamagotchiId: String, completion: @escaping ([DiaryEntry]) -> Void){
+    func fetchDiaryEntries(forUserId userId: String, completion: @escaping ([DiaryEntry]) -> Void){
         db.collection("diaryEntries")
-            .whereField("tamagotchiId", isEqualTo: tamagotchiId)
+            .whereField("userId", isEqualTo: userId)
             .order(by: "createdAt", descending: true)
             .getDocuments { snapshot, error in
                 guard let docs = snapshot?.documents, error == nil else {
@@ -31,7 +31,6 @@ class DiaryService{
     
     func addDiaryEntry(_entry : DiaryEntry, completion: @escaping (Bool) -> Void) {
         let data: [String: Any] = [
-            "tamagotchiId": _entry.tamagotchiId,
             "userId": _entry.userId,
             "text": _entry.text,
             "createdAt": _entry.createdAt

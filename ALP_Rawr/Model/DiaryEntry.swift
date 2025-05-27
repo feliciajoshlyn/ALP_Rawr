@@ -10,7 +10,6 @@ import FirebaseFirestore
 
 struct DiaryEntry: Identifiable {
     let id: String
-    let tamagotchiId: String
     let userId: String
     let text: String
     let createdAt: Timestamp
@@ -19,7 +18,6 @@ struct DiaryEntry: Identifiable {
     
     init(id: String, data: [String: Any]) {
         self.id = id
-        self.tamagotchiId = data["tamagotchiId"] as? String ?? ""
         self.userId = data["userId"] as? String ?? ""
         self.text = data["text"] as? String ?? ""
         self.createdAt = data["createdAt"] as? Timestamp ?? Timestamp(date: Date())
