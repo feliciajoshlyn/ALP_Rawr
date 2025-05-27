@@ -26,6 +26,7 @@ class SpriteScene: SKScene {
     private var soapNode: SKSpriteNode!
     private var isDraggingSoap = false
     private var isShowering = false
+    private var isSoapReturning = false
     private var soapOriginalPosition: CGPoint = .zero
     
     // Makanan
@@ -50,7 +51,7 @@ class SpriteScene: SKScene {
     }
 
     private func setupSprite() {
-        spriteModel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        spriteModel.position = CGPoint(x: size.width / 2, y: size.height / 1.5)
         spriteNode = SKSpriteNode(imageNamed: "dog_inplace_right")
         spriteNode.position = spriteModel.position
         spriteNode.size = CGSize(width: 150, height: 150)
@@ -168,11 +169,15 @@ class SpriteScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
 
-        if soapNode.contains(location) {
-            isDraggingSoap = true
-        } else if foodNode.contains(location) {
+        if foodNode.contains(location) {
             isDraggingFood = true
+            isDraggingSoap = false
+        } else if soapNode.contains(location) && !isSoapReturning {
+            isDraggingSoap = true
+            isDraggingFood = false
         } else if spriteNode.contains(location) {
+            isDraggingSoap = false
+            isDraggingFood = false
             onPet?()
         }
     }
@@ -194,9 +199,12 @@ class SpriteScene: SKScene {
         if isDraggingSoap {
             isDraggingSoap = false
             stopShowerEffect()
+            isSoapReturning = true
             let moveBack = SKAction.move(to: soapOriginalPosition, duration: 0.2)
             moveBack.timingMode = .easeOut
-            soapNode.run(moveBack)
+            soapNode.run(moveBack) { [weak self] in
+                self?.isSoapReturning = false
+            }
         }
 
         if isDraggingFood {
