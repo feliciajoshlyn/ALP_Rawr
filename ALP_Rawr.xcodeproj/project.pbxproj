@@ -54,6 +54,11 @@
 			path = ALP_RawrUITests;
 			sourceTree = "<group>";
 		};
+		3F8354992DD6F16300122435 /* Config */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Config;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +95,7 @@
 		3F83537B2DD6D82B00122435 = {
 			isa = PBXGroup;
 			children = (
+				3F8354992DD6F16300122435 /* Config */,
 				3F8353862DD6D82B00122435 /* ALP_Rawr */,
 				3F8353942DD6D82C00122435 /* ALP_RawrTests */,
 				3F83539E2DD6D82C00122435 /* ALP_RawrUITests */,
@@ -124,6 +130,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				3F8353862DD6D82B00122435 /* ALP_Rawr */,
+				3F8354992DD6F16300122435 /* Config */,
 			);
 			name = ALP_Rawr;
 			packageProductDependencies = (

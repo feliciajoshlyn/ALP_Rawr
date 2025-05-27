@@ -2,7 +2,7 @@
 //  EntryCard.swift
 //  ALP_Rawr
 //
-//  Created by Gerald Gavin Lienardi on 27/05/25.
+//  Created by student on 23/05/25.
 //
 
 import SwiftUI
