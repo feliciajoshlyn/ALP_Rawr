@@ -22,6 +22,9 @@ struct ALP_RawrApp: App {
         let provider = AppCheckDebugProviderFactory()
         AppCheck.setAppCheckProviderFactory(provider)
         #endif
+        
+        let service = PetService()
+        _petHomeViewModel = StateObject(wrappedValue: PetHomeViewModel(petService: service))
     }
     
     var body: some Scene {

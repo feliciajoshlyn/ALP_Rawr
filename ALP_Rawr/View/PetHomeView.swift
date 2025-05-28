@@ -9,6 +9,7 @@ import SwiftUI
 import SpriteKit
 
 struct PetHomeView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var petHomeViewModel: PetHomeViewModel
     
     let screenWidth = UIScreen.main.bounds.width
@@ -49,8 +50,10 @@ struct PetHomeView: View {
             .padding(.bottom, 4)
         }
         .onAppear {
-            petHomeViewModel.fetchPetData()
-            petHomeViewModel.checkCurrEmotion()
+            if let user = authViewModel.user {
+                petHomeViewModel.fetchPetData()
+                petHomeViewModel.checkCurrEmotion()
+            }
         }
     }
     

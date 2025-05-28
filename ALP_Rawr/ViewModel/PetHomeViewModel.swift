@@ -15,14 +15,15 @@ class PetHomeViewModel: ObservableObject {
     @Published var currEmotion: String = "Happy"
     @Published var icon: String = "happybadge"
     
-    private var ref: DatabaseReference
+    private let petService: PetService
+
     private var user: User?
     private(set) var hasFetchData: Bool = false
     
     private var timer: Timer?
     
-    init() {
-        self.ref = Database.database().reference().child("pets")
+    init(petService: PetService = PetService()) {
+        self.petService = petService
     }
     
     deinit {
@@ -34,78 +35,53 @@ class PetHomeViewModel: ObservableObject {
         hasFetchData = true
         
         self.user = Auth.auth().currentUser
-        if let userId = user?.uid {
-            ref.child(userId).observeSingleEvent(of: .value) { snapshot in
-                guard let petDict = snapshot.value as? [String: Any],
-                      let jsonData = try? JSONSerialization.data(withJSONObject: petDict),
-                      let pet = try? JSONDecoder().decode(PetModel.self, from: jsonData)
-                else {
-                    print("Failed to decode pet data.")
-                    self.pet = PetModel()
-                    return
+        guard let userId = user?.uid else {
+            setupDefaultPet()
+            return
+        }
+        
+        petService.fetchPet(for: userId) { [weak self] pet in
+            DispatchQueue.main.async{
+                if let fetchedPet = pet {
+                    self?.pet = fetchedPet
+                } else {
+                    self?.setupDefaultPet()
                 }
-                
-                DispatchQueue.main.async {
-                    self.pet = pet
-                }
+                self?.startTimer()
             }
-        } else {
-            self.pet = PetModel(
-                name: "Default",
-                hp: 100,
-                hunger: 100,
-                isHungry: false,
-                bond: 0,
-                lastFed: Date(),
-                lastPetted: Date(),
-                lastWalked: Date(),
-                lastShower: Date(),
-                lastChecked: Date(),
-                currMood: "Happy",
-                emotions: [
-                    "Happy":EmotionModel(
-                        name: "Happy",
-                        level: 100,
-                        limit: 40,
-                        priority: 1,
-                        icon: "happybadge"
-                    ),
-                    "Sad":EmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
-                    "Angry":EmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
-                    "Bored":EmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
-                    "Fear":EmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
-                ],
-                userId: ""
-            )
+            
         }
     }
     
-//    func fetchPetData() {
-//        guard !hasFetchData else { return }
-//        hasFetchData = true
-//        
-//        self.user = Auth.auth().currentUser
-//        if let userId = user?.uid {
-//            ref.child(userId).observeSingleEvent(of: .value) { snapshot in
-//                guard let petDict = snapshot.value as? [String: Any],
-//                      let jsonData = try? JSONSerialization.data(withJSONObject: petDict),
-//                      let pet = try? JSONDecoder().decode(PetModel.self, from: jsonData)
-//                else {
-//                    print("Failed to decode pet data.")
-//                    self.pet = PetModel()
-//                    return
-//                }
-//                
-//                DispatchQueue.main.async {
-//                    self.pet = pet
-//                    self.startTimer() // ✅ Start timer after pet is set
-//                }
-//            }
-//        } else {
-//            self.pet = PetModel(...) // default model
-//            self.startTimer() // ✅ Still start timer if using default
-//        }
-//    }
+    private func setupDefaultPet(){
+        self.pet = PetModel(
+            name: "Default",
+            hp: 100,
+            hunger: 100,
+            isHungry: false,
+            bond: 0,
+            lastFed: Date(),
+            lastPetted: Date(),
+            lastWalked: Date(),
+            lastShower: Date(),
+            lastChecked: Date(),
+            currMood: "Happy",
+            emotions: [
+                "Happy":EmotionModel(
+                    name: "Happy",
+                    level: 100,
+                    limit: 40,
+                    priority: 1,
+                    icon: "happybadge"
+                ),
+                "Sad":EmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
+                "Angry":EmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
+                "Bored":EmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
+                "Fear":EmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
+            ],
+            userId: ""
+        )
+    }
     
     func applyInteraction(_ type: InteractionType) {
         guard let changes = InteractionEffect.effects[type] else { return }
@@ -209,5 +185,20 @@ class PetHomeViewModel: ObservableObject {
             }
         }
     }
-
+    
+    func savePet(){
+//        guard let userId = authViewModel.user?.uid else { return }
+//        petService.savePet(pet, for: userId) { success in
+//            if success {
+//                print("Pet saved successfully on app background")
+//            } else {
+//                print("Failed to save pet on app background")
+//            }
+//        }
+    }
+    
+    func refetchPetData() {
+//        guard let userId = authViewModel.user?.uid else { return }
+//        fetchPetData(for: userId)
+    }
 }
