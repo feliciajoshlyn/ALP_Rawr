@@ -93,14 +93,14 @@ class AuthViewModel: ObservableObject {
                 "friends": []
             ])
             
+            let defaultPet = makeDefaultPet(userId: userId)
+            await self.savePetDB(pet: defaultPet)
+            
             DispatchQueue.main.async {
                 self.falseCredential = false
                 self.user = user
                 self.myUser.uid = user.uid
             }
-            
-            let defaultPet = makeDefaultPet(userId: userId)
-            await self.savePetDB(pet: defaultPet)
             
         } catch {
             DispatchQueue.main.async {
