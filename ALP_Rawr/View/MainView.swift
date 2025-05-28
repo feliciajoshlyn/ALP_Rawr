@@ -19,7 +19,7 @@ struct MainView: View {
                     Text("Home")
                 }
             
-            SocialView()
+            DiaryView()
                 .tabItem{
                     Image(systemName: "person.2.fill")
                     Text("Social")
