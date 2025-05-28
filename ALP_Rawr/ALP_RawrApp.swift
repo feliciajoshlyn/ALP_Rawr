@@ -9,10 +9,11 @@ import SwiftUI
 
 @main
 struct ALP_RawrApp: App {
+    @StateObject private var locationViewModel = LocationViewModel()
     var body: some Scene {
         WindowGroup {
-            ContentView()
-//            HomeView()
+            MapView()
+                .environmentObject(locationViewModel)
         }
     }
 }
