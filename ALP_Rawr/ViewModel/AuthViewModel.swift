@@ -17,18 +17,23 @@ class AuthViewModel: ObservableObject {
     @Published var isSigningIn: Bool
     @Published var myUser: MyUser
     @Published var falseCredential: Bool
+    @Published var petName: String = ""
     
     private var ref: DatabaseReference
     
-    init(){
+    private let petService: PetService
+    
+    init(petService: PetService = PetService()){
         self.user = nil
         self.isSigningIn = false
         self.falseCredential = false
         self.myUser = MyUser()
         
         self.ref = Database.database().reference().child("pets")
+        self.petService = petService
         
         self.checkUserSession()
+        
     }
     
     func checkUserSession(){
@@ -80,54 +85,104 @@ class AuthViewModel: ObservableObject {
     }
 
     
+//    func signUp() async {
+//        do {
+//            let result = try await Auth.auth().createUser(withEmail: myUser.email, password: myUser.password)
+//            let user = result.user
+//            
+//            self.myUser.uid = user.uid
+//            
+//            let db = Firestore.firestore()
+//            let userRef = db.collection("users").document(user.uid)
+//            try await userRef.setData([
+//                "email": user.email ?? "",
+//                "username": myUser.username,
+//                "friends": []
+//            ])
+//            
+//            let defaultPet = makeDefaultPet(userId: user.uid, petName: self.petName)
+//            petService.createPet(pet: defaultPet) { success in
+//                DispatchQueue.main.async{
+//                    if success {
+//                        print("Creating base pet success")
+//                    } else {
+//                        print("Failed to create base pet in db")
+//                    }
+//                }
+//            }
+//            
+//            DispatchQueue.main.async {
+//                self.falseCredential = false
+//                self.user = user
+//            }
+//            
+//        } catch {
+//            DispatchQueue.main.async {
+//                self.falseCredential = true
+//            }
+//        }
+//    }
+    
+    // MARK: - Enhanced SignUp Function with Better Error Handling
     func signUp() async {
         do {
             let result = try await Auth.auth().createUser(withEmail: myUser.email, password: myUser.password)
             let user = result.user
             
-            let db = Firestore.firestore()
-            let userRef = db.collection("users").document(user.uid)
-            try await userRef.setData([
-                "email": user.email ?? "",
-                "username": myUser.username,
-                "friends": []
-            ])
+            self.myUser.uid = user.uid
+            print("✅ User created successfully with UID: \(user.uid)")
             
-            let defaultPet = makeDefaultPet(userId: userId)
-            await self.savePetDB(pet: defaultPet)
+            // smth in here is causing falseCredentials to trigger jd tak comment dulu
+            // Create Firestore user document
+//            let db = Firestore.firestore()
+//            let userRef = db.collection("users").document(user.uid)
+//            try await userRef.setData([
+//                "email": user.email ?? "",
+//                "username": myUser.username,
+//                "friends": []
+//            ])
+//            print("✅ Firestore user document created")
             
-            DispatchQueue.main.async {
-                self.falseCredential = false
-                self.user = user
-                self.myUser.uid = user.uid
+            // Create default pet - AWAIT the async operation
+            let defaultPet = makeDefaultPet(userId: user.uid, petName: self.petName) // Fixed: use myUser.petName
+            print("Creating default pet: \(defaultPet.name) for user: \(user.uid)")
+            
+            // Use async/await instead of completion handler for better error handling
+            let petCreated = await createPetAsync(pet: defaultPet)
+            
+            await MainActor.run {
+                if petCreated {
+                    print("Default pet created successfully in Firebase")
+                    self.falseCredential = false
+                    self.user = user
+                } else {
+                    print("Failed to create default pet in Firebase")
+                    self.falseCredential = true
+                }
             }
             
         } catch {
-            DispatchQueue.main.async {
+            print("❌ SignUp error: \(error.localizedDescription)")
+            await MainActor.run {
                 self.falseCredential = true
             }
         }
     }
-    
-    func savePetDB(pet: PetModel) async {
-        guard let jsonData = try? JSONEncoder().encode(pet),
-              let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
-        else {
-            return
-        }
-        
-        do {
-            try await ref.child(pet.userId).setValue(json)
-        } catch {
-            print("Error initializing pet: \(error)")
+
+    // MARK: - Async Pet Creation Helper
+    func createPetAsync(pet: PetModel) async -> Bool {
+        return await withCheckedContinuation { continuation in
+            petService.createPet(pet: pet) { success in
+                continuation.resume(returning: success)
+            }
         }
     }
     
-    func makeDefaultPet(userId: String) -> PetModel {
+    func makeDefaultPet(userId: String, petName: String) -> PetModel {
         let now = Date()
         
         return PetModel(
-            name: "",
+            name: petName,
             hp: 100,
             hunger: 100,
             isHungry: false,

@@ -23,8 +23,9 @@ struct ALP_RawrApp: App {
         AppCheck.setAppCheckProviderFactory(provider)
         #endif
         
-        let service = PetService()
-        _petHomeViewModel = StateObject(wrappedValue: PetHomeViewModel(petService: service))
+        let petService = PetService()
+        _authViewModel = StateObject(wrappedValue: AuthViewModel(petService: petService))
+        _petHomeViewModel = StateObject(wrappedValue: PetHomeViewModel(petService: petService))
     }
     
     var body: some Scene {
@@ -32,6 +33,16 @@ struct ALP_RawrApp: App {
             MainView()
                 .environmentObject(authViewModel)
                 .environmentObject(petHomeViewModel)
+//                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+//                    if authViewModel.isSigningIn {
+//                        petHomeViewModel.savePet()
+//                    }
+//                }
+//                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+//                    if authViewModel.isSigningIn {
+//                        petHomeViewModel.refetchPetData()
+//                    }
+//                }
         }
     }
 }

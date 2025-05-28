@@ -26,13 +26,26 @@ class PetService{
         }
     }
     
+    func createPet(pet: PetModel, completion: @escaping (Bool) -> Void){
+        guard let jsonData = try? JSONEncoder().encode(pet),
+              let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
+        else {
+            print("Failed to create Pet")
+            completion(false)
+            return
+        }
+        
+        ref.child(pet.userId).setValue(json)
+        completion(true)
+    }
+    
     func savePet(_ pet: PetModel, for userId: String, completion: @escaping (Bool) -> Void) {
         let saveRef = self.ref.child(userId)
         
         do {
             let data = try JSONEncoder().encode(pet)
             if let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                ref.setValue(dict) { error, _ in
+                saveRef.setValue(dict) { error, _ in
                     completion(error == nil)
                 }
             } else {

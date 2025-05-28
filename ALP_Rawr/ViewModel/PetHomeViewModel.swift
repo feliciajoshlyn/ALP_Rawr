@@ -49,7 +49,6 @@ class PetHomeViewModel: ObservableObject {
                 }
                 self?.startTimer()
             }
-            
         }
     }
     
@@ -97,6 +96,7 @@ class PetHomeViewModel: ObservableObject {
             pet.lastPetted = Date()
         } else if type == .feeding {
             pet.lastFed = Date()
+            pet.hunger = min(100, pet.hunger + 1)
         } else if type == .showering {
             pet.lastShower = Date()
         }
@@ -145,12 +145,17 @@ class PetHomeViewModel: ObservableObject {
         let hoursSinceWalked = Int(now.timeIntervalSince(pet.lastWalked) / 3600)
         let hoursSinceShowered = Int(now.timeIntervalSince(pet.lastShower) / 3600)
 
-        // HP decays slightly if hunger is very low or if neglected
-        if pet.hunger < 20 {
-            pet.hp = max(0, pet.hp - minutesPassed / 2)
-        }
-        if hoursSinceFed > 6 || hoursSincePetted > 8 || hoursSinceWalked > 12 || hoursSinceShowered > 24 {
-            pet.hp = max(0, pet.hp - minutesPassed / 3)
+        if pet.hunger >= 80 {
+            // Regenerate HP when well-fed
+            pet.hp = min(100, pet.hp + minutesPassed / 2)
+        } else {
+            // Apply decay only when not well-fed
+            if pet.hunger < 20 {
+                pet.hp = max(0, pet.hp - minutesPassed / 2)
+            }
+            if hoursSinceFed > 6 || hoursSincePetted > 8 || hoursSinceWalked > 12 || hoursSinceShowered > 24 {
+                pet.hp = max(0, pet.hp - minutesPassed / 3)
+            }
         }
 
         // Increase emotion levels based on neglect
@@ -187,18 +192,25 @@ class PetHomeViewModel: ObservableObject {
     }
     
     func savePet(){
-//        guard let userId = authViewModel.user?.uid else { return }
-//        petService.savePet(pet, for: userId) { success in
-//            if success {
-//                print("Pet saved successfully on app background")
-//            } else {
-//                print("Failed to save pet on app background")
-//            }
-//        }
+        guard let userId = user?.uid else {
+            return
+        }
+        
+        self.updatePetStatusPeriodically()
+        self.checkCurrEmotion()
+        
+        petService.savePet(self.pet, for: userId) { success in
+            if success {
+                print("Pet saved successfully on app background")
+            } else {
+                print("Failed to save pet on app background")
+            }
+        }
     }
     
     func refetchPetData() {
-//        guard let userId = authViewModel.user?.uid else { return }
-//        fetchPetData(for: userId)
+        fetchPetData()
+        self.updatePetStatusPeriodically()
+        self.checkCurrEmotion()
     }
 }

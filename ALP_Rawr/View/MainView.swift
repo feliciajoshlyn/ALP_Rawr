@@ -19,11 +19,11 @@ struct MainView: View {
                     Text("Home")
                 }
             
-            DiaryView()
-                .tabItem{
-                    Image(systemName: "person.2.fill")
-                    Text("Social")
-                }
+//            DiaryView()
+//                .tabItem{
+//                    Image(systemName: "person.2.fill")
+//                    Text("Social")
+//                }
             
             EmotionGalleryView()
                 .tabItem{
@@ -50,5 +50,5 @@ struct MainView: View {
 #Preview {
     MainView()
         .environmentObject(AuthViewModel())
-        .environmentObject(PetHomeViewModel())
+        .environmentObject(PetHomeViewModel(petService: PetService()))
 }

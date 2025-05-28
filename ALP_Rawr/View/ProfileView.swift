@@ -15,7 +15,7 @@ struct ProfileView: View {
     var body: some View {
         Button(action: {
             Task {
-                await authViewModel.savePetDB(pet: petHomeViewModel.pet)
+                petHomeViewModel.savePet()
                 authViewModel.signOut()
                 authViewModel.checkUserSession()
                 showAuthSheet = !authViewModel.isSigningIn

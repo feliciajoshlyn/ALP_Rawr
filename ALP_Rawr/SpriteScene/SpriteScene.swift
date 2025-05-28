@@ -33,6 +33,7 @@ class SpriteScene: SKScene {
     private var foodNode: SKSpriteNode!
     private var isDraggingFood = false
     private var foodOriginalPosition: CGPoint = .zero
+    private var hasFed = false
     
     var onPet: (() -> Void)?
     var onShower: (() -> Void)?
@@ -228,9 +229,15 @@ class SpriteScene: SKScene {
     
     private func checkFoodOverDog(){
         let isOverlapping = foodNode.frame.intersects(spriteNode.frame)
-        
-        if isOverlapping {
+
+        if isOverlapping && !hasFed {
+            hasFed = true
             onFeed?()
+
+            // Reset after delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.hasFed = false
+            }
         }
     }
     
