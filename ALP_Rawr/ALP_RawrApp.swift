@@ -13,6 +13,7 @@ import FirebaseAppCheck
 struct ALP_RawrApp: App {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var petHomeViewModel = PetHomeViewModel()
+    @StateObject private var locationViewModel = LocationViewModel()
     
     init(){
         FirebaseApp.configure()
@@ -35,6 +36,7 @@ struct ALP_RawrApp: App {
             MainView()
                 .environmentObject(authViewModel)
                 .environmentObject(petHomeViewModel)
+                .environmentObject(locationViewModel)
 //                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
 //                    if authViewModel.isSigningIn {
 //                        petHomeViewModel.savePet()
