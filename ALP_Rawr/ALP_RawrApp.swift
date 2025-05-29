@@ -24,7 +24,9 @@ struct ALP_RawrApp: App {
         #endif
         
         let petService = PetService()
-        _authViewModel = StateObject(wrappedValue: AuthViewModel(petService: petService))
+        let userService = UserService()
+        
+        _authViewModel = StateObject(wrappedValue: AuthViewModel(petService: petService, userService: userService))
         _petHomeViewModel = StateObject(wrappedValue: PetHomeViewModel(petService: petService))
     }
     

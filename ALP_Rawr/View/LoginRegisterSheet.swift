@@ -261,6 +261,12 @@ struct LoginRegisterSheet: View {
                         } else {
                             VStack(spacing: 16) {
                                 CustomTextFieldView(
+                                    title: "Username",
+                                    text: $authViewModel.myUser.username,
+                                    icon: "person.fill"
+                                )
+                                
+                                CustomTextFieldView(
                                     title: "Email",
                                     text: $authViewModel.myUser.email,
                                     icon: "envelope.fill",
@@ -322,15 +328,15 @@ struct LoginRegisterSheet: View {
                                 }
                             }
                             
-//                            await MainActor.run {
-//                                isLoading = false
-//                                
-//                                if !authViewModel.falseCredential {
-//                                    authViewModel.checkUserSession()
-//                                    showAuthSheet = !authViewModel.isSigningIn
-//                                    authViewModel.myUser = MyUser()
-//                                }
-//                            }
+                            await MainActor.run {
+                                isLoading = false
+                                
+                                if !authViewModel.falseCredential {
+                                    authViewModel.checkUserSession()
+                                    showAuthSheet = !authViewModel.isSigningIn
+                                    authViewModel.myUser = MyUser()
+                                }
+                            }
                         }
                     }) {
                         HStack {

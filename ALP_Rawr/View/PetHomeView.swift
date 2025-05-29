@@ -157,13 +157,13 @@ struct PetHomeView: View {
             .padding(.bottom, 4)
         }
         .onAppear {
-            if authViewModel.isSigningIn {
+            if authViewModel.isSigningIn, let user = authViewModel.user {
                 petHomeViewModel.fetchPetData()
                 petHomeViewModel.checkCurrEmotion()
             }
         }
-        .onChange(of: authViewModel.isSigningIn) { oldValue, newValue in
-            if newValue {
+        .onChange(of: authViewModel.user) { _, newUser in
+            if let _ = newUser {
                 petHomeViewModel.fetchPetData()
                 petHomeViewModel.checkCurrEmotion()
             }
