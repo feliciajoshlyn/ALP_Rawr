@@ -14,6 +14,7 @@ struct ALP_RawrApp: App {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var petHomeViewModel = PetHomeViewModel()
     @StateObject private var locationViewModel = LocationViewModel()
+    @StateObject private var diaryViewModel = DiaryViewModel()
     
     init(){
         FirebaseApp.configure()
@@ -37,16 +38,17 @@ struct ALP_RawrApp: App {
                 .environmentObject(authViewModel)
                 .environmentObject(petHomeViewModel)
                 .environmentObject(locationViewModel)
-//                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-//                    if authViewModel.isSigningIn {
-//                        petHomeViewModel.savePet()
-//                    }
-//                }
-//                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-//                    if authViewModel.isSigningIn {
-//                        petHomeViewModel.refetchPetData()
-//                    }
-//                }
+                .environmentObject(diaryViewModel)
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+                    if authViewModel.isSigningIn, let user = authViewModel.user {
+                        petHomeViewModel.savePet()
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                    if authViewModel.isSigningIn, let user = authViewModel.user {
+                        petHomeViewModel.refetchPetData()
+                    }
+                }
         }
     }
 }

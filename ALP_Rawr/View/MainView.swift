@@ -19,16 +19,22 @@ struct MainView: View {
                     Text("Home")
                 }
             
-//            DiaryView()
-//                .tabItem{
-//                    Image(systemName: "person.2.fill")
-//                    Text("Social")
-//                }
-            
             EmotionGalleryView()
                 .tabItem{
                     Image(systemName: "book.pages")
                     Text("Emotions")
+                }
+            
+            MapView()
+                .tabItem {
+                    Image(systemName: "figure.walk")
+                    Text("Walk with Me")
+                }
+            
+            DiaryView()
+                .tabItem{
+                    Image(systemName: "person.2.fill")
+                    Text("Social")
                 }
             
             ProfileView(showAuthSheet: $showAuthSheet)
@@ -51,4 +57,6 @@ struct MainView: View {
     MainView()
         .environmentObject(AuthViewModel())
         .environmentObject(PetHomeViewModel(petService: PetService()))
+        .environmentObject(LocationViewModel())
+        .environmentObject(DiaryViewModel())
 }

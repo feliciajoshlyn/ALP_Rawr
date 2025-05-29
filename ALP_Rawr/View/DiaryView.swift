@@ -43,7 +43,9 @@ struct DiaryView: View {
                 AddFriendView()
             }
             .onAppear {
-                diaryViewModel.loadEntries(for: authViewModel.myUser.uid)
+                if let user = authViewModel.user {
+                    diaryViewModel.loadEntries(for: user.uid)
+                }
             }
             .refreshable {
                 diaryViewModel.loadEntries(for: authViewModel.myUser.uid)

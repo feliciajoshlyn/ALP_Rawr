@@ -19,7 +19,7 @@ struct EntryCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(authViewModel.myUser.username ?? "User")
+                Text(authViewModel.myUser.username)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.primary)
                 
