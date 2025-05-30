@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct EmotionModel: Codable {
+struct PetEmotionModel: Codable {
     let name: String
     var level: Int
     let limit: Int
