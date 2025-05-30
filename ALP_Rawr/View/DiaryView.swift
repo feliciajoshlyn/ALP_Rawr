@@ -88,6 +88,7 @@ struct AddFriendView: View {
                 // Search Field
                 TextField("Enter friend's UID", text: $searchUID)
                     .textFieldStyle(.roundedBorder)
+                    .keyboardType(.default)
                     .onChange(of: searchUID) {
                         didSearch = false
                         if !searchUID.isEmpty{

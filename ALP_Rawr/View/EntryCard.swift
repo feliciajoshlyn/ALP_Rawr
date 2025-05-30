@@ -9,15 +9,12 @@ import SwiftUI
 
 struct EntryCard: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var diaryViewModel: DiaryViewModel
     var diaryEntry: DiaryEntry
-//    let likesCount: Int
-//    let commentsCount: Int
-//    let timeAgo: String
-    
     @State private var isLiked = false
     @State private var username: String = "Loading..."
+    @State private var likesCount: Int = 0
 
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -38,43 +35,54 @@ struct EntryCard: View {
                     .lineLimit(nil)
                     .foregroundColor(.primary)
                 
-//                HStack(spacing: 16) {
-//                    Button(action: {
-//                        withAnimation(.easeInOut(duration: 0.2)) {
-//                            isLiked.toggle()
-//                        }
-//                    }) {
-//                        HStack(spacing: 6) {
-//                            Image(systemName: isLiked ? "heart.fill" : "heart")
-//                                .foregroundColor(isLiked ? .pink : .secondary)
-//                                .font(.system(size: 16))
-//                                .scaleEffect(isLiked ? 1.1 : 1.0)
-//                            
-//                            Text("\(diaryEntry.likesCount + (isLiked ? 1 : 0))")
-//                                .font(.system(size: 12, weight: .medium))
-//                                .foregroundColor(.secondary)
-//                        }
-//                    }
-//                    .buttonStyle(PlainButtonStyle())
-//                    
-//                    // Comment button
-//                    Button(action: {
-//                        // Comment action
-//                    }) {
-//                        HStack(spacing: 6) {
-//                            Image(systemName: "bubble.left")
-//                                .foregroundColor(.secondary)
-//                                .font(.system(size: 16))
-//                            
+                HStack(spacing: 16) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isLiked.toggle()
+                            // Update likes count optimistically
+                            likesCount += isLiked ? 1 : -1
+                        }
+                        diaryViewModel.addReaction(to: diaryEntry.id, Reaction(
+                            id: authViewModel.user?.uid ?? "",
+                            data:[
+                                "userId": authViewModel.user?.uid ?? "",
+                                "liked": isLiked,
+                                "comment": "",
+                                "createdAt": Date()
+                            ])
+                        )
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: isLiked ? "heart.fill" : "heart")
+                                .foregroundColor(isLiked ? .pink : .secondary)
+                                .font(.system(size: 16))
+                                .scaleEffect(isLiked ? 1.1 : 1.0)
+                            
+                            Text("\(likesCount)")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Comment button
+                    Button(action: {
+                        // Comment action
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "bubble.left")
+                                .foregroundColor(.secondary)
+                                .font(.system(size: 16))
+                            
 //                            Text("\(commentsCount)")
 //                                .font(.system(size: 12, weight: .medium))
 //                                .foregroundColor(.secondary)
-//                        }
-//                    }
-//                    .buttonStyle(PlainButtonStyle())
-//                    
-//                    Spacer()
-//                }
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Spacer()
+                }
             }
         }
         .padding(16)
@@ -92,15 +100,32 @@ struct EntryCard: View {
                 )
         )
         .onAppear {
-             DiaryService.shared.searchUser(byUID: diaryEntry.userId) { user in
-                 DispatchQueue.main.async {
-                     self.username = user?.username ?? "Unknown"
-                 }
-             }
-         }
+            // Initialize likes count
+            likesCount = diaryEntry.likesCount
+            
+            // Load the user's reaction for this entry
+            diaryViewModel.loadReaction(for: diaryEntry.id, userId: authViewModel.user?.uid ?? "")
+            
+            // Fetch username
+            DiaryService.shared.searchUser(byUID: diaryEntry.userId) { user in
+                DispatchQueue.main.async {
+                    self.username = user?.username ?? "Unknown"
+                }
+            }
+        }
+        .onReceive(diaryViewModel.$userReactions) { userReactions in
+            // Update isLiked when userReactions changes
+            if let reaction = userReactions[diaryEntry.id] {
+                DispatchQueue.main.async {
+                    self.isLiked = reaction.isLiked
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.isLiked = false
+                }
+            }
+        }
     }
-
-
 }
 
 #Preview {
@@ -112,7 +137,7 @@ struct EntryCard: View {
 //            timeAgo: "2h ago"
 //        )
 //        .environmentObject(AuthViewModel())
-//        
+//
 //        EntryCard(
 //            entryText: "My dog learned a new trick today! He can now roll over AND play dead. Mom says he's the smartest dog ever 🐕💫",
 //            likesCount: 8,

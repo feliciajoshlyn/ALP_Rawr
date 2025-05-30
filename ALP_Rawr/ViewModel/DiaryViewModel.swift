@@ -11,6 +11,8 @@ class DiaryViewModel : ObservableObject{
     @Published var diary: [DiaryEntry] = []
     @Published var friends: [MyUser] = []
     @Published var searchedFriend: MyUser? = nil
+    @Published var userReactions: [String: Reaction] = [:]
+
 
     @Published var isLoading = false
     
@@ -41,18 +43,43 @@ class DiaryViewModel : ObservableObject{
         }
     }
     
-    func loadReactions(for entryId: String) {
-        diaryService.fetchReactions(toEntryId: entryId) { reactions in
+    func loadReaction(for entryId: String, userId : String) {
+        diaryService.fetchReaction(for: entryId, userId: userId) { reaction in
             DispatchQueue.main.async {
-                if let index = self.diary.firstIndex(where: { $0.id == entryId }) {
-                    self.diary[index].reactions = reactions
+                if let reaction = reaction {
+                    self.userReactions[entryId] = reaction
+                } else {
+                    self.userReactions[entryId] = nil
                 }
             }
         }
     }
     
+//    func loadReactions(for entryId: String) {
+//        diaryService.fetchReactions(toEntryId: entryId) { reactions in
+//            DispatchQueue.main.async {
+//                if let index = self.diary.firstIndex(where: { $0.id == entryId }) {
+//                    self.diary[index].reactions = reactions
+//                }
+//            }
+//        }
+//    }
+    
+    func loadReactions(for entryId: String) {
+        diaryService.fetchReactions(toEntryId: entryId) { reactions in
+            DispatchQueue.main.async {
+                if let index = self.diary.firstIndex(where: { $0.id == entryId }) {
+                    var updatedEntry = self.diary[index]
+                    updatedEntry.reactions = reactions
+                    self.diary[index] = updatedEntry
+                }
+            }
+        }
+    }
+
+
     func addReaction(to entryId: String, _ reaction: Reaction) {
-        diaryService.addReaction(toEntryId: entryId, reaction: reaction) {success in
+        diaryService.addOrUpdateReaction(toEntryId: entryId, reaction: reaction) {success in
             if success {
                 print("Successfully added reaction")
             } else {
