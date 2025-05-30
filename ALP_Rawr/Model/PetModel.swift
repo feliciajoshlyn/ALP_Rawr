@@ -9,10 +9,10 @@ import Foundation
 
 struct PetModel: Codable {
     var name: String = ""
-    var hp: Int = 100
-    var hunger: Int = 100
+    var hp: Double = 100.0
+    var hunger: Double = 100.0
     var isHungry: Bool = false
-    var bond: Int = 0
+    var bond: Double = 0.0
     var lastFed: Date = Date()
     var lastPetted: Date = Date()
     var lastWalked: Date = Date()
@@ -58,10 +58,10 @@ struct PetModel: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
-        hp = try container.decode(Int.self, forKey: .hp)
-        hunger = try container.decode(Int.self, forKey: .hunger)
+        hp = try container.decode(Double.self, forKey: .hp)
+        hunger = try container.decode(Double.self, forKey: .hunger)
         isHungry = try container.decode(Bool.self, forKey: .isHungry)
-        bond = try container.decode(Int.self, forKey: .bond)
+        bond = try container.decode(Double.self, forKey: .bond)
         currMood = try container.decode(String.self, forKey: .currMood)
         emotions = try container.decode([String:PetEmotionModel].self, forKey: .emotions)
         userId = try container.decode(String.self, forKey: .userId)
@@ -81,10 +81,10 @@ struct PetModel: Codable {
     }
     
     init(name: String = "",
-         hp: Int = 100,
-         hunger: Int = 100,
+         hp: Double = 100,
+         hunger: Double = 100,
          isHungry: Bool = false,
-         bond: Int = 0,
+         bond: Double = 0,
          lastFed: Date = Date(),
          lastPetted: Date = Date(),
          lastWalked: Date = Date(),

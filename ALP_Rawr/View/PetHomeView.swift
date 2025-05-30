@@ -72,7 +72,7 @@ struct PetHomeView: View {
                     HStack(spacing: 15) {
                         StatusCardView(
                             title: "Health",
-                            value: petHomeViewModel.pet.hp,
+                            value: Int(petHomeViewModel.pet.hp),
                             maxValue: 100,
                             color: .red,
                             icon: "heart.fill"
@@ -80,7 +80,7 @@ struct PetHomeView: View {
                         
                         StatusCardView(
                             title: "Hunger",
-                            value: petHomeViewModel.pet.hunger,
+                            value: Int(petHomeViewModel.pet.hunger),
                             maxValue: 100,
                             color: .orange,
                             icon: "fork.knife"
