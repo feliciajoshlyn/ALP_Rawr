@@ -16,26 +16,40 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     }
     
     func sessionDidBecomeInactive(_ session: WCSession) {
-        
+        self.savePet()
     }
     
     func sessionDidDeactivate(_ session: WCSession) {
-        
+        self.savePet()
     }
     
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any ]) {
+        DispatchQueue.main.async{
+            print("Received message: \(message)")
+            
+            self.applyInteraction(message["type"] as! InteractionType)
+        }
+    }
     
+    // Published variables, yang akan digunakan di View
     @Published var pet: PetModel = PetModel()
     @Published var currEmotion: String = "Happy"
     @Published var icon: String = "happybadge"
-    
-    private let petService: PetService
-
-    private var user: User?
     @Published var hasFetchData: Bool = false
     
+    //PetService untuk function-function yang connect ke Realtime DB
+    private let petService: PetService
+
+    //User untuk menerima dan nanti pakai atribut user yang lagi login
+    private var user: User?
+    
+    //Timer untuk menjalankan function yang akan melakukan pengecekan secara berkala
     private var timer: Timer?
     
+    //Session untuk connect ke watch
     var session: WCSession
+    
+    //PetService diinject melalui init
     init(petService: PetService = PetService(), session: WCSession = .default) {
         self.petService = petService
         self.session = session
@@ -44,43 +58,54 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         session.activate()
     }
     
+    //Saat ViewModel tidak dipakai lagi, timernya dimatikan
     deinit {
         timer?.invalidate()
     }
     
+    //Function untuk mengambil pet data, tidak bisa dijalankan di init karena membutuhkan user sudah login, sementara ViewModel ini dibuat bersamaan
+    // dengan AuthViewModel, supaya bisa diakses di view-view lain pada aplikasi, dan saat AuthViewModel pertama dibuat, bisa saja belum ada user yang login
     func fetchPetData() {
-        print("fetchPetData called")
+        
+        //Supaya gak fetch data berulang kali sebelum data disimpan di DB, nanti overwrite perubahan yang terjadi di app ini
         guard !hasFetchData else {
             print("Already fetched data, returning early")
             return
         }
+        
+        //Kalau sebelumnya hasFetchData == false, akan diset jadi true di sini
         hasFetchData = true
         
+        //Ambil user dari yang lagi login di Firebase
         self.user = Auth.auth().currentUser
+        
+        //Error handling kalau semisal saja user kosong, petnya diset jadi default
         guard let userId = user?.uid else {
             print("No user ID found, setting up default pet")
             setupDefaultPet()
-            startTimer()  // Make sure timer is started here too
+            self.startTimer()
             return
         }
         
-        print("Fetching pet for userId: \(userId)")
+        
+        //Panggil function fetchPet dari FB Realtime DB dari PetService
         petService.fetchPet(for: userId) { [weak self] pet in
-            print("petService.fetchPet completion called")
             DispatchQueue.main.async{
                 if let fetchedPet = pet {
-                    print("Fetched pet successfully")
+                    //PetService akan return Pet yang diambil kalau berhasil, trs dimasukkan variabel pet-nya ViewModel
                     self?.pet = fetchedPet
                 } else {
-                    print("Failed to fetch pet, setting up default pet")
+                    //Kalau gagal, setup default pet
                     self?.setupDefaultPet()
                 }
             }
         }
+        
+        //Start timernya untuk periodic checking
         self.startTimer()
     }
 
-    
+    //Function buat bikin default pet
     private func setupDefaultPet(){
         self.pet = PetModel(
             name: "Default",
@@ -111,6 +136,8 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         )
     }
     
+    //Function kalau ada interaksi dengan petnya yang akan mengubah level dari emosi pet
+    //Value perubahan sudah diset di InteractionType untuk masing-masing interaction dan masing-masing mood/emotion
     func applyInteraction(_ type: InteractionType) {
         guard let changes = InteractionEffect.effects[type] else { return }
 
@@ -121,11 +148,12 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
             }
         }
         
+        //Tambahan yang perlu diset sesudah ada interaksi tertentu
         if type == .petting {
             pet.lastPetted = Date()
         } else if type == .feeding {
             pet.lastFed = Date()
-            pet.hunger = min(100, pet.hunger + 1)
+            pet.hunger = min(100.0, pet.hunger + 1.0)
         } else if type == .showering {
             pet.lastShower = Date()
         }
@@ -133,9 +161,13 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         self.checkCurrEmotion()
     }
     
+    //Function untuk cek emotion/mood dari petnya skrng apa berdasarkan level dari emotion tersebut
+    //Setiap emotion ada limitnya yang berarti kalau level > limit tersebut artinya pet sedang merasakan mood tersebut
+    //Kalau ada emotion yang sama2 melebihi limitnya, akan dicek dari priority
     func checkCurrEmotion(){
         let activeEmotions = pet.emotions.filter { $0.value.level >= $0.value.limit }
         
+        //Set default kalau gaada emotion yang aktif jadi happy
         if activeEmotions.isEmpty {
             self.currEmotion = "Happy"
             self.icon = "happybadge"
@@ -155,50 +187,55 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
+    //Function untuk bantu round decimal value jd "places" angka di belakang koma
     func roundToDecimal(_ value: Double, places: Int) -> Double {
         let factor = pow(10.0, Double(places))
         return (value * factor).rounded() / factor
     }
     
+    //Function untuk cek kondisi petnya
     func updatePetStatusPeriodically() {
         let now = Date()
+        
+        //Akan melakukan pengecekan berdasarkan sudah lewat berapa lama dari terakhir kali dicek
         let lastChecked = pet.lastChecked
-        let timePassed = now.timeIntervalSince(lastChecked) // in seconds
+        let timePassed = now.timeIntervalSince(lastChecked) // bentuknya dalam detik
         
-        guard timePassed >= 60 else { return } // Only update if at least 1 minute has passed
+        guard timePassed >= 60 else { return } // cuman diupdate kalau sudah lewat 1 menit
         
-        let minutesPassed: Double = roundToDecimal(timePassed / 60.0, places: 1)
+        let minutesPassed: Double = roundToDecimal(timePassed / 60.0, places: 1) // perubahan waktu td diubah jd menit
         
-        // Adjust Hunger (decreases slowly - every 3 minutes decreases by 1)
+        // Ngurangi hunger, kalau udh lewat 3 menit = dikurangi 1
         let hungerDecrease: Double = roundToDecimal(minutesPassed / 3.0, places: 1)
         pet.hunger = max(0.0, pet.hunger - hungerDecrease)
         pet.isHungry = pet.hunger < 40.0
 
-        // Calculate hours since activities
+        // Hitung berapa jam sudah berlalu sejak dikasih makan, dielus, diajak jalan2, dimandiin
         let hoursSinceFed = now.timeIntervalSince(pet.lastFed) / 3600
         let hoursSincePetted = now.timeIntervalSince(pet.lastPetted) / 3600
         let hoursSinceWalked = now.timeIntervalSince(pet.lastWalked) / 3600
         let hoursSinceShowered = now.timeIntervalSince(pet.lastShower) / 3600
 
-        // Adjust HP with more balanced rates
+        // Ubah HP berdasarkan status lapar
         if pet.hunger >= 50.0 {
-            // Regenerate HP when well-fed (slower regeneration)
-            let hpIncrease: Double = roundToDecimal(minutesPassed / 5.0, places: 1) // Gain 1 HP every 5 minutes when well-fed
+            // Nambah HP nya kalau dia kenyang (gk lapar)
+            let hpIncrease: Double = roundToDecimal(minutesPassed / 5.0, places: 1)
             pet.hp = min(100.0, pet.hp + hpIncrease)
         } else {
-            // Apply decay with more gradual rates
-            if pet.hunger < 15.0 { // Only severe hunger affects HP
-                let hpDecrease = roundToDecimal(minutesPassed / 8, places: 3)  // Lose 1 HP every 8 minutes when starving
+            // HP berkurang kalau kelaparan
+            if pet.hunger < 15.0 { // HP cuman mulai berkurang kalau kelaparan yang parah
+                let hpDecrease = roundToDecimal(minutesPassed / 8, places: 3)  // Saat hunger di bawah 15, untuk setiap 8 menit nanti HP akan berkurang
                 pet.hp = max(1.0, pet.hp - hpDecrease)
             }
             
-            // Neglect penalties (much more gradual)
+            // Penalti kalau, gk diajak interaksi lama banget
             var neglectPenalty: Double = 0.0
             if hoursSinceFed > 8.0 { neglectPenalty += 1.0 }
             if hoursSincePetted > 12.0 { neglectPenalty += 1.0 }
             if hoursSinceWalked > 16.0 { neglectPenalty += 1.0 }
             if hoursSinceShowered > 30.0 { neglectPenalty += 1.0 }
             
+            //Kalau udah diabaikan lama-lama nanti HP berkurang
             if neglectPenalty > 0.0 {
                 let hpDecrease: Double = roundToDecimal((minutesPassed * neglectPenalty) / 15, places: 2) // Gradual penalty based on neglect
                 pet.hp = max(1.0, pet.hp - hpDecrease)
@@ -206,81 +243,84 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
             }
         }
 
-        // Update emotion levels with more balanced and realistic rates
+        // Update emotion levels berdasarkan lama waktu gk diajak iteraksi
         for (name, emotion) in pet.emotions {
             var updated = emotion
             
             switch name {
             case "Sad":
                 if hoursSincePetted > 6.0 {
-                    // Gradual increase in sadness when not petted
+                    // Tambah sedih kalau udah lama gk dielus
                     let increase = min(3.0, roundToDecimal(minutesPassed / 10.0, places: 2)) // Max 3 points per update
                     updated.level = min(100.0, updated.level + increase)
                 } else {
-                    // Slowly decrease sadness when recently petted
+                    // Kalau udh dielus bakal berkurang kesedihannya
                     let decrease: Double = roundToDecimal(minutesPassed / 15.0, places: 2)
                     updated.level = max(0.0, updated.level - decrease)
                 }
                 
             case "Angry":
                 if pet.hunger < 30.0 {
-                    // Get angry when hungry
+                    // Kalau laper marah
                     let increase: Double = min(2.0, roundToDecimal(minutesPassed / 8.0, places: 3))
                     updated.level = min(100.0, updated.level + increase)
                 } else if pet.hunger > 60.0 {
-                    // Calm down when well-fed
+                    // Kalau udh kenyang berkurang amarahnya
                     let decrease: Double = roundToDecimal(minutesPassed / 12.0, places: 3)
                     updated.level = max(0.0, updated.level - decrease)
                 }
                 
             case "Bored":
                 if hoursSinceWalked > 8.0 {
-                    // Get bored without walks
+                    // Bosen kalau lama gk diajak jalan2
                     let increase: Double = min(4.0, roundToDecimal(minutesPassed / 6.0, places: 3)) // Boredom builds faster
                     updated.level = min(100.0, updated.level + increase)
                 } else {
-                    // Less bored after walks
+                    // Habis jalan, level bosennya berkurang
                     let decrease: Double = roundToDecimal(minutesPassed / 10.0, places: 3)
                     updated.level = max(0.0, updated.level - decrease)
                 }
                 
             case "Fear":
-                if hoursSinceShowered > 48.0 { // Only after being very dirty
-                    // Slight fear from being too dirty
+                if hoursSinceShowered > 48.0 { // Tambah takut kalau udh lama kotor
                     let increase: Double = min(1.0, roundToDecimal(minutesPassed / 20.0, places: 3))
                     updated.level = min(100.0, updated.level + increase)
                 } else {
-                    // Fear naturally decreases over time
+                    // Rasa takut akan berkurang seiring berjalannya waktu
                     let decrease: Double = roundToDecimal(minutesPassed / 25.0, places: 3)
                     updated.level = max(0, updated.level - decrease)
                 }
                 
             case "Happy":
-                // Happiness depends on overall care
+                // Lvl kebahagiaan bergantung ke tingkat care usernya
                 let overallCare = (pet.hunger + pet.hp) / 2
                 
                 if overallCare > 70 {
-                    // Increase happiness when well cared for
+                    // Kalau carenya bagus meningkat happinessnya
                     let increase: Double = roundToDecimal(minutesPassed / 8.0, places: 3)
                     updated.level = min(100.0, updated.level + increase)
                 } else if overallCare < 40.0 {
-                    // Decrease happiness when neglected
+                    // Kalau diabaikan happiness berkurang
                     let decrease: Double = roundToDecimal(minutesPassed / 6.0, places: 3)
                     updated.level = max(0.0, updated.level - decrease)
                 }
-                // Maintain current level if care is moderate (40-70)
+                // Kalau tingkat carenya gk terlalu tinggi/rendah, dibiarkan
                 
             default:
                 break
             }
             
+            //diupdate berdasarkan nama emotionnya
             pet.emotions[name] = updated
         }
 
-        pet.lastChecked = now
-        checkCurrEmotion()
+        //update terakhir dicek kapan
+        self.pet.lastChecked = now
+        //cek emosi ulang
+        self.checkCurrEmotion()
     }
     
+    //Function simpanan buat kalau mau testing yang durasinya lebih cepat
 //    func updatePetStatusPeriodicallyFaster() {
 //        let now = Date()
 //        let lastChecked = pet.lastChecked
@@ -332,6 +372,7 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
 //        checkCurrEmotion()
 //    }
     
+    //Function untuk menjalankan function yang mengecek secara berkala
     private func startTimer() {
         timer?.invalidate() // in case it's called twice
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
@@ -341,6 +382,8 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
+    //Panggil PetService buat update data pet ke DB
+    //Bakal dilakukan tiap kali logout dan user keluar aplikasi (pencet home)
     func savePet(){
         guard let userId = user?.uid else {
             return
@@ -358,12 +401,14 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
+    //Ambil ulang setelah user keluar aplikasi (cuman leave app bukan logout)
     func refetchPetData() {
         fetchPetData()
         self.updatePetStatusPeriodically()
         self.checkCurrEmotion()
     }
     
+    //Reset view model buat dipakai sm user selanjutnya yang lagi login
     func resetViewModel(){
         currEmotion = "Happy"
         icon = "happybadge"
