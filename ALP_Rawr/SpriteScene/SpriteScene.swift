@@ -170,29 +170,30 @@ class SpriteScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
 
+        // Always reset both drag states first
+        isDraggingSoap = false
+        isDraggingFood = false
+
         if foodNode.contains(location) {
             isDraggingFood = true
-            isDraggingSoap = false
         } else if soapNode.contains(location) && !isSoapReturning {
             isDraggingSoap = true
-            isDraggingFood = false
         } else if spriteNode.contains(location) {
-            isDraggingSoap = false
-            isDraggingFood = false
             onPet?()
         }
     }
+
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
-        
+
         if isDraggingSoap {
             soapNode.position = location
             checkSoapOverDog()
         } else if isDraggingFood {
             foodNode.position = location
-            self.checkFoodOverDog()
+            checkFoodOverDog()
         }
     }
     
