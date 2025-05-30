@@ -130,7 +130,8 @@ struct PetHomeView: View {
                         
                         // SpriteKit Scene
                         SpriteView(scene: scene)
-                            .frame(height: 400)
+                            .frame(height: UIDevice.current.userInterfaceIdiom == .pad ? 800 : 400)
+                            .frame(maxWidth: .infinity)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .padding(.horizontal, 15)
                             .padding(.bottom, 15)

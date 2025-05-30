@@ -8,119 +8,6 @@
 import SwiftUI
 
 struct LoginRegisterSheet: View {
-//    @Binding var showAuthSheet: Bool
-//    @EnvironmentObject var authViewModel: AuthViewModel
-//    @State var registerClicked: Bool = true
-//
-//    var body: some View {
-//        if registerClicked {
-//            VStack {
-//                Text("Login")
-//                    .font(.title)
-//
-//                TextField("Email", text: $authViewModel.myUser.email)
-//                    .textFieldStyle(RoundedBorderTextFieldStyle())
-//                    .padding()
-//
-//                SecureField("Password", text: $authViewModel.myUser.password)
-//                    .textFieldStyle(RoundedBorderTextFieldStyle())
-//                    .padding()
-//
-//                if authViewModel.falseCredential {
-//                    Text("Invalid Username and Password")
-//                        .fontWeight(.medium)
-//                        .foregroundColor(Color.red)
-//                }
-//
-//                Button(
-//                    action: {
-//                        Task {
-//                            await authViewModel.signIn()
-//                            if !authViewModel.falseCredential {
-//                                authViewModel.checkUserSession()
-//                                showAuthSheet = !authViewModel.isSigningIn
-//                                authViewModel.myUser = MyUser()
-//                            }
-//                        }
-//                    }
-//                ) {
-//                    Text("Login").frame(maxWidth: .infinity)
-//                }
-//                .frame(maxWidth: .infinity)
-//                .padding()
-//                .buttonStyle(.borderedProminent)
-//
-//                Spacer()
-//
-//                Button(
-//                    action: {
-//                        registerClicked = false
-//                    }
-//                ) {
-//                    Text("Register")
-//                        .font(.system(size: 18))
-//                        .fontWeight(.medium)
-//                }
-//            }
-//            .interactiveDismissDisabled(true)
-//
-//        } else {
-//            VStack {
-//                Text("Register")
-//                    .font(.title)
-//
-//                TextField("Username", text: $authViewModel.myUser.username)
-//                    .textFieldStyle(RoundedBorderTextFieldStyle())
-//                    .padding()
-//
-//                TextField("Email", text: $authViewModel.myUser.email)
-//                    .textFieldStyle(RoundedBorderTextFieldStyle())
-//                    .padding()
-//
-//                SecureField("Password", text: $authViewModel.myUser.password)
-//                    .textFieldStyle(RoundedBorderTextFieldStyle())
-//                    .padding()
-//
-//                if authViewModel.falseCredential {
-//                    Text("Invalid Username and Password")
-//                        .fontWeight(.medium)
-//                        .foregroundColor(Color.red)
-//                }
-//
-//                Button(
-//                    action: {
-//                        Task {
-//                            await authViewModel.signUp()
-//                            if !authViewModel.falseCredential {
-//                                authViewModel.checkUserSession()
-//                                showAuthSheet = !authViewModel.isSigningIn
-//                                authViewModel.myUser = MyUser()
-//                            }
-//                        }
-//                    }
-//                ) {
-//                    Text("Register").frame(maxWidth: .infinity)
-//                }
-//                .frame(maxWidth: .infinity)
-//                .padding()
-//                .buttonStyle(.borderedProminent)
-//
-//                Spacer()
-//
-//                Button(
-//                    action: {
-//                        registerClicked = true
-//                    }
-//                ) {
-//                    Text("Login")
-//                        .font(.system(size: 18))
-//                        .fontWeight(.medium)
-//                }
-//                .interactiveDismissDisabled(true)
-//            }
-//        }
-//    }
-    
     @Binding var showAuthSheet: Bool
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var isLoginMode: Bool = true
@@ -153,16 +40,11 @@ struct LoginRegisterSheet: View {
                 VStack(spacing: 24) {
                     // Header
                     VStack(spacing: 12) {
-                        Image(systemName: isLoginMode ? "person.circle.fill" : "person.badge.plus.fill")
-                            .font(.system(size: 60))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.blue, .purple],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .animation(.spring(response: 0.5), value: isLoginMode)
+                        Image("defaultprofile")
+                            .resizable()
+                            .scaledToFit()
+                            .aspectRatio(4, contentMode: .fit)
+                            .frame(maxWidth: .infinity)
                         
                         Text(isLoginMode ? "Welcome Back" : "Create Account")
                             .font(.largeTitle)

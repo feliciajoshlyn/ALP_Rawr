@@ -2,23 +2,16 @@
 //  EmotionModel.swift
 //  ALP_Rawr
 //
-//  Created by Dapur Gili on 23/05/25.
+//  Created by student on 30/05/25.
 //
 
 import Foundation
+import SwiftUI
 
-struct EmotionModel: Codable {
-    let name: String
-    var level: Int
-    let limit: Int
-    let priority: Int
-    let icon: String
-    
-    var isActive: Bool {
-        return level >= limit
-    }
-    
-    mutating func apply(change: Int){
-        self.level = max(0, min(100, self.level + change))
-    }
+struct EmotionModel {
+    var name: String = ""
+    var description: String = ""
+    var copingStrategies: [String] = []
+    var color: Color = .clear
+    var cardImage: String = ""
 }

@@ -35,7 +35,7 @@ struct ALP_RawrApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainView()
+            SplashScreenView()
                 .environmentObject(authViewModel)
                 .environmentObject(petHomeViewModel)
                 .environmentObject(locationViewModel)

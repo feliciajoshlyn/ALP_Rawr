@@ -66,17 +66,17 @@ class PetHomeViewModel: ObservableObject {
             lastChecked: Date(),
             currMood: "Happy",
             emotions: [
-                "Happy":EmotionModel(
+                "Happy":PetEmotionModel(
                     name: "Happy",
                     level: 100,
                     limit: 40,
                     priority: 1,
                     icon: "happybadge"
                 ),
-                "Sad":EmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
-                "Angry":EmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
-                "Bored":EmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
-                "Fear":EmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
+                "Sad":PetEmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
+                "Angry":PetEmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
+                "Bored":PetEmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
+                "Fear":PetEmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
             ],
             userId: ""
         )
@@ -135,46 +135,110 @@ class PetHomeViewModel: ObservableObject {
         
         let minutesPassed = Int(timePassed / 60)
         
-        // Adjust Hunger (every minute decreases by 1)
-        pet.hunger = max(0, pet.hunger - minutesPassed)
+        // Adjust Hunger (decreases slowly - every 3 minutes decreases by 1)
+        let hungerDecrease = minutesPassed / 3
+        pet.hunger = max(0, pet.hunger - hungerDecrease)
         pet.isHungry = pet.hunger < 40
 
-        // Adjust HP based on lack of interaction
+        // Calculate hours since activities
         let hoursSinceFed = Int(now.timeIntervalSince(pet.lastFed) / 3600)
         let hoursSincePetted = Int(now.timeIntervalSince(pet.lastPetted) / 3600)
         let hoursSinceWalked = Int(now.timeIntervalSince(pet.lastWalked) / 3600)
         let hoursSinceShowered = Int(now.timeIntervalSince(pet.lastShower) / 3600)
 
-        if pet.hunger >= 80 {
-            // Regenerate HP when well-fed
-            pet.hp = min(100, pet.hp + minutesPassed / 2)
+        // Adjust HP with more balanced rates
+        if pet.hunger >= 50 {
+            // Regenerate HP when well-fed (slower regeneration)
+            let hpIncrease = minutesPassed / 5 // Gain 1 HP every 5 minutes when well-fed
+            pet.hp = min(100, pet.hp + hpIncrease)
         } else {
-            // Apply decay only when not well-fed
-            if pet.hunger < 20 {
-                pet.hp = max(0, pet.hp - minutesPassed / 2)
+            // Apply decay with more gradual rates
+            if pet.hunger < 15 { // Only severe hunger affects HP
+                let hpDecrease = minutesPassed / 8 // Lose 1 HP every 8 minutes when starving
+                pet.hp = max(1, pet.hp - hpDecrease)
             }
-            if hoursSinceFed > 6 || hoursSincePetted > 8 || hoursSinceWalked > 12 || hoursSinceShowered > 24 {
-                pet.hp = max(0, pet.hp - minutesPassed / 3)
+            
+            // Neglect penalties (much more gradual)
+            var neglectPenalty = 0
+            if hoursSinceFed > 8 { neglectPenalty += 1 }
+            if hoursSincePetted > 12 { neglectPenalty += 1 }
+            if hoursSinceWalked > 16 { neglectPenalty += 1 }
+            if hoursSinceShowered > 30 { neglectPenalty += 1 }
+            
+            if neglectPenalty > 0 {
+                let hpDecrease = (minutesPassed * neglectPenalty) / 15 // Gradual penalty based on neglect
+                pet.hp = max(1, pet.hp - hpDecrease)
             }
         }
 
-        // Increase emotion levels based on neglect
+        // Update emotion levels with more balanced and realistic rates
         for (name, emotion) in pet.emotions {
             var updated = emotion
+            
             switch name {
             case "Sad":
-                updated.level = min(100, updated.level + (hoursSincePetted > 8 ? minutesPassed / 3 : 0))
+                if hoursSincePetted > 6 {
+                    // Gradual increase in sadness when not petted
+                    let increase = min(3, minutesPassed / 10) // Max 3 points per update
+                    updated.level = min(100, updated.level + increase)
+                } else {
+                    // Slowly decrease sadness when recently petted
+                    let decrease = minutesPassed / 15
+                    updated.level = max(0, updated.level - decrease)
+                }
+                
             case "Angry":
-                updated.level = min(100, updated.level + (hoursSinceFed > 6 ? minutesPassed / 4 : 0))
+                if pet.hunger < 30 {
+                    // Get angry when hungry
+                    let increase = min(2, minutesPassed / 8)
+                    updated.level = min(100, updated.level + increase)
+                } else if pet.hunger > 60 {
+                    // Calm down when well-fed
+                    let decrease = minutesPassed / 12
+                    updated.level = max(0, updated.level - decrease)
+                }
+                
             case "Bored":
-                updated.level = min(100, updated.level + (hoursSinceWalked > 12 ? minutesPassed / 2 : 0))
+                if hoursSinceWalked > 8 {
+                    // Get bored without walks
+                    let increase = min(4, minutesPassed / 6) // Boredom builds faster
+                    updated.level = min(100, updated.level + increase)
+                } else {
+                    // Less bored after walks
+                    let decrease = minutesPassed / 10
+                    updated.level = max(0, updated.level - decrease)
+                }
+                
             case "Fear":
-                updated.level = min(100, updated.level + (hoursSinceShowered > 24 ? minutesPassed / 2 : 0))
+                if hoursSinceShowered > 48 { // Only after being very dirty
+                    // Slight fear from being too dirty
+                    let increase = min(1, minutesPassed / 20)
+                    updated.level = min(100, updated.level + increase)
+                } else {
+                    // Fear naturally decreases over time
+                    let decrease = minutesPassed / 25
+                    updated.level = max(0, updated.level - decrease)
+                }
+                
             case "Happy":
-                updated.level = max(0, updated.level - minutesPassed / 2)
+                // Happiness depends on overall care
+                let overallCare = (pet.hunger + pet.hp) / 2
+                
+                if overallCare > 70 {
+                    // Increase happiness when well cared for
+                    let increase = minutesPassed / 8
+                    updated.level = min(100, updated.level + increase)
+                } else if overallCare < 40 {
+                    // Decrease happiness when neglected
+                    let decrease = minutesPassed / 6
+                    updated.level = max(0, updated.level - decrease)
+                }
+                // Maintain current level if care is moderate (40-70)
+                
             default:
                 break
             }
+            
             pet.emotions[name] = updated
         }
 
@@ -212,5 +276,11 @@ class PetHomeViewModel: ObservableObject {
         fetchPetData()
         self.updatePetStatusPeriodically()
         self.checkCurrEmotion()
+    }
+    
+    func resetViewModel(){
+        currEmotion = "Happy"
+        icon = "happybadge"
+        hasFetchData = false
     }
 }
