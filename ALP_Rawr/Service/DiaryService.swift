@@ -109,30 +109,46 @@ class DiaryService{
             }
     }
     
-    func searchUser(byEmail email: String, completion: @escaping (MyUser?) -> Void){
-        db.collection("users")
-            .whereField("email", isEqualTo: email)
-            .getDocuments() { snapshot, error in
-                guard let document = snapshot?.documents.first, error == nil else {
-                    completion(nil)
-                    return
-                }
-                let user = MyUser(uid: document.documentID)
-                completion(user)
-            }
-    }
-    
-    func addFriend(currentUserId: String, friendId: String, completion: @escaping (Bool) -> Void) {
-        let userRef = db.collection("users").document(currentUserId)
-        userRef.updateData([
-            "friends": FieldValue.arrayUnion([friendId])
-        ]){ error in
-            if let error = error {
-                print("Error adding friend: \(error.localizedDescription)")
-                completion(false)
+    func searchUser(byUID uid: String, completion: @escaping (MyUser?) -> Void) {
+        db.collection("users").document(uid).getDocument { document, error in
+            guard let document = document, document.exists, error == nil,
+                  let data = document.data(),
+                  let username = data["username"] as? String else {
+                completion(nil)
                 return
             }
-            completion(true)
+            
+            let user = MyUser(uid: document.documentID, username: username)
+            completion(user)
+        }
+    }
+
+    
+//    func addFriend(currentUserId: String, friendId: String, completion: @escaping (Bool) -> Void) {
+//        let userRef = db.collection("users").document(currentUserId)
+//        userRef.updateData([
+//            "friends": FieldValue.arrayUnion([friendId])
+//        ]){ error in
+//            if let error = error {
+//                print("Error adding friend: \(error.localizedDescription)")
+//                completion(false)
+//                return
+//            }
+//            completion(true)
+//        }
+//    }
+    
+    func addMutualFriend(currentUserId: String, friendId: String, completion: @escaping (Bool) -> Void) {
+        let user1Ref = db.collection("users").document(currentUserId)
+        let user2Ref = db.collection("users").document(friendId)
+        
+        let batch = db.batch()
+        
+        batch.updateData(["friends": FieldValue.arrayUnion([friendId])], forDocument: user1Ref)
+        batch.updateData(["friends": FieldValue.arrayUnion([currentUserId])], forDocument: user2Ref)
+        
+        batch.commit { error in
+            completion(error == nil)
         }
     }
     

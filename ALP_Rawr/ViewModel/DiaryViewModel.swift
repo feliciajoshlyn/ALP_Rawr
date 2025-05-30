@@ -9,7 +9,8 @@ import Foundation
 
 class DiaryViewModel : ObservableObject{
     @Published var diary: [DiaryEntry] = []
-    @Published var friends: [String] = []
+    @Published var friends: [MyUser] = []
+    @Published var searchedFriend: MyUser? = nil
 
     @Published var isLoading = false
     
@@ -60,22 +61,74 @@ class DiaryViewModel : ObservableObject{
         }
     }
     
-    func addFriend(from currentUserId: String, to friendId: String) {
-        diaryService.addFriend(currentUserId: currentUserId, friendId: friendId) {success in
-            if success {
-                print( "Successfully added friend")
-            } else {
-                print( "Failed to add friend")
+//    func addFriend(from currentUserId: String, to friendId: String) {
+//        diaryService.addFriend(currentUserId: currentUserId, friendId: friendId) {success in
+//            if success {
+//                print( "Successfully added friend")
+//            } else {
+//                print( "Failed to add friend")
+//            }
+//        }
+//    }
+    func searchFriend(by uid: String) {
+        diaryService.searchUser(byUID: uid) { user in
+            DispatchQueue.main.async {
+                self.searchedFriend = user
+            }
+        }
+    }
+
+
+    func addFriendButtonAction(currentUserId: String, friendId: String) {
+        diaryService.addMutualFriend(currentUserId: currentUserId, friendId: friendId) { success in
+            DispatchQueue.main.async {
+                if success {
+                    print("Successfully added mutual friend")
+                } else {
+                    print("Failed to add mutual friend")
+                }
             }
         }
     }
     
-    func showFriends(for userId: String){
-        diaryService.fetchFriends(userId: userId) { friends in
-            DispatchQueue.main.async {
+    func fetchCurrentUserFriends(currentUserId: String) {
+        diaryService.fetchFriends(userId: currentUserId) { friendUIDs in
+            var friends: [MyUser] = []
+            let group = DispatchGroup()
+            
+            for uid in friendUIDs {
+                group.enter()
+                self.diaryService.searchUser(byUID: uid) { user in
+                    if let user = user {
+                        friends.append(user)
+                    }
+                    group.leave()
+                }
+            }
+            
+            group.notify(queue: .main) {
                 self.friends = friends
             }
         }
     }
+
+    
+    func addMutualFriend(from currentUserId: String, to friendId: String) {
+        diaryService.addMutualFriend(currentUserId: currentUserId, friendId: friendId) { success in
+            if success {
+                print("successfully added as friends")
+            } else {
+                print("failed to add as friends")
+            }
+        }
+    }
+    
+//    func showFriends(for userId: String){
+//        diaryService.fetchFriends(userId: userId) { friends in
+//            DispatchQueue.main.async {
+//                self.friends = friends
+//            }
+//        }
+//    }
     
 }

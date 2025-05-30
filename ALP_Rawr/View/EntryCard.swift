@@ -25,9 +25,9 @@ struct EntryCard: View {
                 
                 Spacer()
                 
-                Text("created at")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+//                Text("created at")
+//                    .font(.system(size: 12))
+//                    .foregroundColor(.secondary)
             }
             
             VStack(alignment: .leading, spacing: 12) {

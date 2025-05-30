@@ -16,8 +16,7 @@ struct ProfileView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Header Section
-                VStack(spacing: 24) {
+                VStack(spacing: 12) {
                     Spacer().frame(height: 40)
                     
                     Image("defaultpfp")
@@ -28,8 +27,7 @@ struct ProfileView: View {
                 
                 .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 8)
                     
-                    // Username with elegant styling
-                    Text(authViewModel.myUser.username)
+                    Text(authViewModel.user?.displayName ?? "")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundStyle(
@@ -39,8 +37,11 @@ struct ProfileView: View {
                                 endPoint: .trailing
                             )
                         )
+                    Text(authViewModel.user?.uid ?? "")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     
-                    Spacer().frame(height: 20)
+                    Spacer().frame(height: 10)
                 }
                 .padding(.horizontal, 24)
                 
@@ -50,7 +51,7 @@ struct ProfileView: View {
                     InfoCard(
                         icon: "envelope.fill",
                         title: "Email Address",
-                        content: authViewModel.myUser.email,
+                        content: authViewModel.user?.email ?? "",
                         iconColor: .blue,
                         backgroundColor: Color.blue.opacity(0.05)
                     )

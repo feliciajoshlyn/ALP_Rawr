@@ -23,6 +23,7 @@ class AuthViewModel: ObservableObject {
     
     private let petService: PetService
     private let userService: UserService
+    private let db = Firestore.firestore()
     
     init(petService: PetService = PetService(), userService: UserService = UserService()){
         self.user = nil
@@ -41,6 +42,9 @@ class AuthViewModel: ObservableObject {
     func checkUserSession(){
         //check jika pernah login, kl login akan return user
         self.user = Auth.auth().currentUser
+        self.myUser.uid = Auth.auth().currentUser?.uid ?? ""
+        self.myUser.email = Auth.auth().currentUser?.email ?? ""
+        self.myUser.username = Auth.auth().currentUser?.displayName ?? ""
         self.isSigningIn = self.user != nil
     }
     
@@ -78,6 +82,8 @@ class AuthViewModel: ObservableObject {
                 self.falseCredential = false
                 self.user = user
                 self.myUser.uid = user.uid
+                self.myUser.email = user.email ?? ""
+                self.myUser.username = user.displayName ?? ""
             }
         } catch {
             DispatchQueue.main.async {
@@ -90,6 +96,11 @@ class AuthViewModel: ObservableObject {
         do {
             let result = try await Auth.auth().createUser(withEmail: myUser.email, password: myUser.password)
             let user = result.user
+            
+            let changeRequest = user.createProfileChangeRequest()
+            changeRequest.displayName = myUser.username
+            try await changeRequest.commitChanges()
+            print("✅ Updated displayName to \(myUser.username)")
             
             self.myUser.uid = user.uid
             print("User created successfully with UID: \(user.uid)")
@@ -135,6 +146,7 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
+    
 
     // MARK: - Async Pet Creation Helper
     func createPetAsync(pet: PetModel) async -> Bool {
