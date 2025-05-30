@@ -92,10 +92,12 @@
 		3FF34CBA2DE9A17A0027FEA5 /* Exceptions for "ALP_Rawr" folder in "ALP_RawrWatchApp Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Model/DiaryEntry.swift,
 				Model/LocationModel.swift,
 				Model/MyUser.swift,
 				Model/PetEmotionModel.swift,
 				Model/PetModel.swift,
+				Model/Reaction.swift,
 			);
 			target = 3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */;
 		};
