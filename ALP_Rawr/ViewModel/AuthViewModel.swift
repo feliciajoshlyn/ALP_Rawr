@@ -161,17 +161,17 @@ class AuthViewModel: ObservableObject {
             lastChecked: now,
             currMood: "Happy",
             emotions: [
-                "Happy":EmotionModel(
+                "Happy":PetEmotionModel(
                     name: "Happy",
                     level: 100,
                     limit: 40,
                     priority: 1,
                     icon: "happybadge"
                 ),
-                "Sad":EmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
-                "Angry":EmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
-                "Bored":EmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
-                "Fear":EmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
+                "Sad":PetEmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
+                "Angry":PetEmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
+                "Bored":PetEmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
+                "Fear":PetEmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
             ],
             userId: userId
         )

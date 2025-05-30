@@ -151,10 +151,10 @@ class PetHomeViewModel: ObservableObject {
         } else {
             // Apply decay only when not well-fed
             if pet.hunger < 20 {
-                pet.hp = max(0, pet.hp - minutesPassed / 2)
+                pet.hp = max(1, pet.hp - minutesPassed / 2)
             }
             if hoursSinceFed > 6 || hoursSincePetted > 8 || hoursSinceWalked > 12 || hoursSinceShowered > 24 {
-                pet.hp = max(0, pet.hp - minutesPassed / 3)
+                pet.hp = max(1, pet.hp - minutesPassed / 3)
             }
         }
 
