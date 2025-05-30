@@ -31,7 +31,7 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     private let petService: PetService
 
     private var user: User?
-    private(set) var hasFetchData: Bool = false
+    @Published var hasFetchData: Bool = false
     
     private var timer: Timer?
     
