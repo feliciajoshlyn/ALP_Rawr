@@ -7,11 +7,12 @@
 
 
 import Foundation
-struct MyUser{
-    var uid : String = ""
+struct MyUser: Identifiable {
+    var id: String { uid }
+    var uid: String  = ""
     var username: String = ""
     var email: String = ""
-    var password : String = ""
-    var friends : [String] = []
-    //tidak perlu token karena dimanage oleh firebase
+    var password: String = ""
+    var friends: [String] = []
+    
 }
