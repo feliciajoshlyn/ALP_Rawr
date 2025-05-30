@@ -48,27 +48,60 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         timer?.invalidate()
     }
     
+//    func fetchPetData() {
+//        guard !hasFetchData else { return }
+//        hasFetchData = true
+//        
+//        self.user = Auth.auth().currentUser
+//        guard let userId = user?.uid else {
+//            setupDefaultPet()
+//            return
+//        }
+//        
+//        petService.fetchPet(for: userId) { [weak self] pet in
+//            DispatchQueue.main.async{
+//                if let fetchedPet = pet {
+//                    self?.pet = fetchedPet
+//                } else {
+//                    self?.setupDefaultPet()
+//                }
+//                self?.startTimer()
+//            }
+//        }
+//    }
+    
     func fetchPetData() {
-        guard !hasFetchData else { return }
+        print("fetchPetData called")
+        guard !hasFetchData else {
+            print("Already fetched data, returning early")
+            return
+        }
         hasFetchData = true
         
         self.user = Auth.auth().currentUser
         guard let userId = user?.uid else {
+            print("No user ID found, setting up default pet")
             setupDefaultPet()
+            startTimer()  // Make sure timer is started here too
             return
         }
         
+        print("Fetching pet for userId: \(userId)")
         petService.fetchPet(for: userId) { [weak self] pet in
+            print("petService.fetchPet completion called")
             DispatchQueue.main.async{
                 if let fetchedPet = pet {
+                    print("Fetched pet successfully")
                     self?.pet = fetchedPet
                 } else {
+                    print("Failed to fetch pet, setting up default pet")
                     self?.setupDefaultPet()
                 }
                 self?.startTimer()
             }
         }
     }
+
     
     private func setupDefaultPet(){
         self.pet = PetModel(
@@ -268,6 +301,7 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         timer?.invalidate() // in case it's called twice
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             DispatchQueue.main.async {
+                print("Timer is going")
                 self?.updatePetStatusPeriodically()
             }
         }

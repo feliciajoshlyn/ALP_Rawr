@@ -162,6 +162,7 @@ struct PetHomeView: View {
                 petHomeViewModel.fetchPetData()
                 petHomeViewModel.checkCurrEmotion()
             }
+            petHomeViewModel.updatePetStatusPeriodically()
         }
         .onChange(of: authViewModel.user) { _, newUser in
             if let _ = newUser {
