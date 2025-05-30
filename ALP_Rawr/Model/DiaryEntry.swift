@@ -6,13 +6,12 @@
 //
 
 import Foundation
-import FirebaseFirestore
 
 struct DiaryEntry: Identifiable {
     let id: String
     let userId: String
     let text: String
-    let createdAt: Timestamp
+    let createdAt: Date
     
     var reactions: [Reaction]? = []
     
@@ -20,7 +19,17 @@ struct DiaryEntry: Identifiable {
         self.id = id
         self.userId = data["userId"] as? String ?? ""
         self.text = data["text"] as? String ?? ""
-        self.createdAt = data["createdAt"] as? Timestamp ?? Timestamp(date: Date())
+        
+        if let timestamp = data["createdAt"] as? Date {
+            // If the data already stores Date (e.g., from watchOS side)
+            self.createdAt = timestamp
+        } else if let timestamp = data["createdAt"] as? TimeInterval {
+            // If createdAt is saved as TimeInterval (Double, Unix time seconds)
+            self.createdAt = Date(timeIntervalSince1970: timestamp)
+        } else {
+            // fallback to current date if no date found
+            self.createdAt = Date()
+        }
     }
 }
 

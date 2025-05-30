@@ -6,20 +6,24 @@
 //
 
 import Foundation
-import FirebaseFirestore
 
-struct Reaction : Identifiable {
-    let id : String
+struct Reaction: Identifiable {
+    let id: String
     let userId: String
     let isLiked: Bool
     let comment: String?
-    let createdAt: Timestamp
+    let createdAt: Date
     
-    init(id: String, data : [String: Any]) {
+    init(id: String, data: [String: Any]) {
         self.id = id
-        self.userId = data["userId"] as! String
-        self.isLiked = data["liked"] as! Bool
+        self.userId = data["userId"] as? String ?? ""
+        self.isLiked = data["liked"] as? Bool ?? false
         self.comment = data["comment"] as? String
-        self.createdAt = data["createdAt"] as! Timestamp
+        
+        if let timeInterval = data["createdAt"] as? Double {
+            self.createdAt = Date(timeIntervalSince1970: timeInterval)
+        } else {
+            self.createdAt = Date()
+        }
     }
 }

@@ -49,7 +49,7 @@ class DiaryService{
         let data: [String: Any] = [
             "userId": _entry.userId,
             "text": _entry.text,
-            "createdAt": _entry.createdAt
+            "createdAt": _entry.createdAt.timeIntervalSince1970
         ]
         
         db.collection("diaryEntries").addDocument(data: data) { error in
@@ -73,7 +73,7 @@ class DiaryService{
             "reaction": reaction.id,
             "isLiked": reaction.isLiked,
             "comment": reaction.comment ?? "",
-            "createdAt": reaction.createdAt
+            "createdAt": reaction.createdAt.timeIntervalSince1970
         ]
 
         db.collection("diaryEntries").document(entryId)
