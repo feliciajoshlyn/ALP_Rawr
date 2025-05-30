@@ -8,9 +8,12 @@
 import SwiftUI
 import MapKit
 import CoreLocation
+import FirebaseAuth
 
 struct MapView: View {
     @EnvironmentObject var viewModel: LocationViewModel
+    @EnvironmentObject var walkViewModel: WalkingViewModel
+    
     @State private var userLocationWrapper: LocationModel? = nil
     @State private var cameraPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
@@ -20,14 +23,17 @@ struct MapView: View {
     )
     @State private var currentRegion: MKCoordinateRegion?
     @State private var isZoomedIn: Bool = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
 
     var body: some View {
         NavigationStack{
-            
-            
             VStack {
+                Text("Take a walk with me!")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                
                 Map(position: $cameraPosition) {
-                    // Fix the optional binding
                     if let userLocationWrapper = userLocationWrapper {
                         Marker("You are here", coordinate: userLocationWrapper.coordinate)
                             .tint(.blue)
@@ -37,7 +43,7 @@ struct MapView: View {
                         MapPolyline(coordinates: viewModel.walkingPath)
                             .stroke(.red, lineWidth: 3)
                     }
-                }
+                }.frame(maxHeight: .infinity)
                 .mapStyle(.standard)
                 .mapControls {
                     MapUserLocationButton()
@@ -66,8 +72,28 @@ struct MapView: View {
                     
                     Button(viewModel.isWalking ? "Stop Walking" : "Start Walking") {
                         if viewModel.isWalking {
+                            // Check if user is logged in before stopping
+                            guard Auth.auth().currentUser != nil else {
+                                alertMessage = "Please log in to save your walk data."
+                                showingAlert = true
+                                return
+                            }
+                            
                             viewModel.stopWalking()
+                            
+                            // Add longer delay to ensure all calculations are complete
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                let walk = viewModel.saveWalkModel()
+                                print("About to save walk: Distance=\(walk.distance), Duration=\(walk.duration), UserID=\(walk.userId)")
+                                walkViewModel.createWalking(walk: walk)
+                            }
                         } else {
+                            // Check if user is logged in before starting
+                            guard Auth.auth().currentUser != nil else {
+                                alertMessage = "Please log in to track your walks."
+                                showingAlert = true
+                                return
+                            }
                             viewModel.startWalking()
                         }
                     }
@@ -79,26 +105,10 @@ struct MapView: View {
                 }
                 
                 VStack(spacing: 10) {
-                    if let region = currentRegion {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Map Info:")
-                                .font(.headline)
-                            Text("Center: \(String(format: "%.4f", region.center.latitude)), \(String(format: "%.4f", region.center.longitude))")
-                                .font(.caption)
-                            Text("Zoom: \(isZoomedIn ? "Zoomed In" : "Zoomed Out")")
-                                .font(.caption)
-                                .foregroundColor(isZoomedIn ? .green : .blue)
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
-                    }
-                    
                     if viewModel.isWalking || viewModel.walkingDistance > 0 {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Walking Stats:")
                                 .font(.headline)
-                            
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text("Distance:")
@@ -134,18 +144,35 @@ struct MapView: View {
                         .background(Color.orange.opacity(0.1))
                         .cornerRadius(8)
                     }
+                    
+                    // Debug info (remove this in production)
+                    if Auth.auth().currentUser != nil {
+                        Text("User ID: \(Auth.auth().currentUser?.uid ?? "No ID")")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    } else {
+                        Text("Not logged in")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
                 }
+                
                 NavigationLink("Open Camera") {
                     CameraView()
                 }
+                .padding(.top, 10)
                 .buttonStyle(.borderedProminent)
             }
             .padding()
+            .alert("Authentication Required", isPresented: $showingAlert) {
+                Button("OK") { }
+            } message: {
+                Text(alertMessage)
+            }
             .onReceive(viewModel.$userLocation) { location in
                 if let loc = location {
                     let coord = loc.coordinate
-                    userLocationWrapper = LocationModel(coordinate: coord) // This will now work
-                    
+                    userLocationWrapper = LocationModel(coordinate: coord)
                     withAnimation(.easeInOut(duration: 1.0)) {
                         cameraPosition = .region(
                             MKCoordinateRegion(
@@ -161,9 +188,6 @@ struct MapView: View {
             viewModel.requestLocation()
         }
     }
-    
-    
-    
 
     private func formatDuration(_ duration: TimeInterval) -> String {
         let minutes = Int(duration) / 60
