@@ -18,7 +18,7 @@ class EmotionGalleryViewModel: ObservableObject {
                 "Share your joy with others",
                 "Say thank you to someone who helped you"
             ],
-            color: .yellow,
+            color: .orange,
             cardImage: "happycard"
         ),
         EmotionModel(
@@ -29,7 +29,7 @@ class EmotionGalleryViewModel: ObservableObject {
                 "Cry if you need to — it’s okay",
                 "Do something that makes you feel better, like drawing or cuddling a toy"
             ],
-            color: .blue,
+            color: .indigo,
             cardImage: "sadcard"
         ),
         EmotionModel(
@@ -51,7 +51,7 @@ class EmotionGalleryViewModel: ObservableObject {
                 "Use your imagination — make up a story or pretend play",
                 "Help someone with a task"
             ],
-            color: .gray,
+            color: .secondary,
             cardImage: "boredcard"
         ),
         EmotionModel(
@@ -62,7 +62,7 @@ class EmotionGalleryViewModel: ObservableObject {
                 "Take deep breaths and close your eyes for a moment",
                 "Use a nightlight or comforting object like a stuffed animal"
             ],
-            color: .purple,
+            color: .mint,
             cardImage: "fearcard"
         )
     ]

@@ -11,8 +11,8 @@ struct EmotionGalleryView: View {
     @StateObject var emotionGalleryViewModel = EmotionGalleryViewModel()
 
     let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
     ]
 
     var body: some View {
@@ -20,20 +20,46 @@ struct EmotionGalleryView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(emotionGalleryViewModel.emotions, id: \.name) { emotion in
-                        VStack {
-                            Image(emotion.cardImage)
-                                .resizable()
-                                .scaledToFit()
-                                .aspectRatio(1, contentMode: .fit)
-                                .frame(maxWidth: .infinity)
-                            Text(emotion.name)
-                                .foregroundColor(emotion.color)
+                        NavigationLink(destination: EmotionDetailView(emotion: emotion)) {
+                            VStack(spacing: 12) {
+                                // Image Container
+                                ZStack {
+                                    Image(emotion.cardImage)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .aspectRatio(1, contentMode: .fit)
+                                }
+                                .shadow(color: emotion.color.opacity(0.4), radius: 12, x: 0, y: 2)
+                                
+                                Text(emotion.name)
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.vertical, 20)
+                            .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity)
+                            .scaleEffect(1.0)
+                            .animation(.easeInOut(duration: 0.1), value: emotion.name)
                         }
                     }
                 }
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
             }
-            .navigationTitle("Emotion Gallery")
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemGroupedBackground),
+                        Color(.systemBackground)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .navigationTitle("How are you feeling?")
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 }
