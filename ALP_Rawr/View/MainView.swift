@@ -19,11 +19,11 @@ struct MainView: View {
                     Text("Home")
                 }
             
-            SocialView()
-                .tabItem{
-                    Image(systemName: "person.2.fill")
-                    Text("Social")
-                }
+//            SocialView()
+//                .tabItem{
+//                    Image(systemName: "person.2.fill")
+//                    Text("Social")
+//                }
             
             EmotionGalleryView()
                 .tabItem{
