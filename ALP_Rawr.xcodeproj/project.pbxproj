@@ -12,6 +12,9 @@
 		3FE5DE502DD6EB0500C2A050 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE5DE4F2DD6EB0500C2A050 /* FirebaseAuth */; };
 		3FE5DE522DD6EB0500C2A050 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE5DE512DD6EB0500C2A050 /* FirebaseCore */; };
 		3FE5DE542DD6EB0500C2A050 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE5DE532DD6EB0500C2A050 /* FirebaseDatabase */; };
+		3FF34C582DE99D290027FEA5 /* ALP_RawrWatchApp Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3FF34C382DE99D270027FEA5 /* ALP_RawrWatchApp Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3FF34CB62DE99EF00027FEA5 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FF34CB52DE99EF00027FEA5 /* WatchConnectivity.framework */; };
+		3FF34CB82DE99F380027FEA5 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FF34CB72DE99F380027FEA5 /* WatchConnectivity.framework */; };
 		7A4D87592DE7485400324CF9 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7A4D87582DE7485400324CF9 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
@@ -30,17 +33,82 @@
 			remoteGlobalIDString = 3F8353832DD6D82B00122435;
 			remoteInfo = ALP_Rawr;
 		};
+		3FF34C452DE99D290027FEA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F83537C2DD6D82B00122435 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3FF34C372DE99D270027FEA5;
+			remoteInfo = "ALP_RawrWatchApp Watch App";
+		};
+		3FF34C4F2DE99D290027FEA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F83537C2DD6D82B00122435 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3FF34C372DE99D270027FEA5;
+			remoteInfo = "ALP_RawrWatchApp Watch App";
+		};
+		3FF34C562DE99D290027FEA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F83537C2DD6D82B00122435 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3FF34C372DE99D270027FEA5;
+			remoteInfo = "ALP_RawrWatchApp Watch App";
+		};
+		3FF34CB32DE99EE80027FEA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F83537C2DD6D82B00122435 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3FF34C372DE99D270027FEA5;
+			remoteInfo = "ALP_RawrWatchApp Watch App";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3FF34C5C2DE99D290027FEA5 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				3FF34C582DE99D290027FEA5 /* ALP_RawrWatchApp Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		3F8353842DD6D82B00122435 /* ALP_Rawr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ALP_Rawr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F8353912DD6D82C00122435 /* ALP_RawrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ALP_RawrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F83539B2DD6D82C00122435 /* ALP_RawrUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ALP_RawrUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FF34C382DE99D270027FEA5 /* ALP_RawrWatchApp Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ALP_RawrWatchApp Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FF34C442DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ALP_RawrWatchApp Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FF34C4E2DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ALP_RawrWatchApp Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FF34CB52DE99EF00027FEA5 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		3FF34CB72DE99F380027FEA5 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS11.4.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3FF34CBA2DE9A17A0027FEA5 /* Exceptions for "ALP_Rawr" folder in "ALP_RawrWatchApp Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Model/DiaryEntry.swift,
+				Model/LocationModel.swift,
+				Model/MyUser.swift,
+				Model/PetEmotionModel.swift,
+				Model/PetModel.swift,
+				Model/Reaction.swift,
+			);
+			target = 3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3F8353862DD6D82B00122435 /* ALP_Rawr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3FF34CBA2DE9A17A0027FEA5 /* Exceptions for "ALP_Rawr" folder in "ALP_RawrWatchApp Watch App" target */,
+			);
 			path = ALP_Rawr;
 			sourceTree = "<group>";
 		};
@@ -54,6 +122,21 @@
 			path = ALP_RawrUITests;
 			sourceTree = "<group>";
 		};
+		3FF34C392DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "ALP_RawrWatchApp Watch App";
+			sourceTree = "<group>";
+		};
+		3FF34C472DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "ALP_RawrWatchApp Watch AppTests";
+			sourceTree = "<group>";
+		};
+		3FF34C512DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "ALP_RawrWatchApp Watch AppUITests";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +148,7 @@
 				3FE5DE4E2DD6EB0500C2A050 /* FirebaseAppCheck in Frameworks */,
 				3FE5DE502DD6EB0500C2A050 /* FirebaseAuth in Frameworks */,
 				3FE5DE522DD6EB0500C2A050 /* FirebaseCore in Frameworks */,
+				3FF34CB62DE99EF00027FEA5 /* WatchConnectivity.framework in Frameworks */,
 				3FE5DE4C2DD6EB0500C2A050 /* FirebaseAnalytics in Frameworks */,
 				7A4D87592DE7485400324CF9 /* FirebaseFirestore in Frameworks */,
 			);
@@ -84,6 +168,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3FF34C352DE99D270027FEA5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3FF34CB82DE99F380027FEA5 /* WatchConnectivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FF34C412DE99D290027FEA5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FF34C4B2DE99D290027FEA5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -93,6 +199,10 @@
 				3F8353862DD6D82B00122435 /* ALP_Rawr */,
 				3F8353942DD6D82C00122435 /* ALP_RawrTests */,
 				3F83539E2DD6D82C00122435 /* ALP_RawrUITests */,
+				3FF34C392DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */,
+				3FF34C472DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests */,
+				3FF34C512DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests */,
+				3FF34CB22DE99E890027FEA5 /* Frameworks */,
 				3F8353852DD6D82B00122435 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,8 +213,20 @@
 				3F8353842DD6D82B00122435 /* ALP_Rawr.app */,
 				3F8353912DD6D82C00122435 /* ALP_RawrTests.xctest */,
 				3F83539B2DD6D82C00122435 /* ALP_RawrUITests.xctest */,
+				3FF34C382DE99D270027FEA5 /* ALP_RawrWatchApp Watch App.app */,
+				3FF34C442DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests.xctest */,
+				3FF34C4E2DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3FF34CB22DE99E890027FEA5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3FF34CB72DE99F380027FEA5 /* WatchConnectivity.framework */,
+				3FF34CB52DE99EF00027FEA5 /* WatchConnectivity.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -117,10 +239,13 @@
 				3F8353802DD6D82B00122435 /* Sources */,
 				3F8353812DD6D82B00122435 /* Frameworks */,
 				3F8353822DD6D82B00122435 /* Resources */,
+				3FF34C5C2DE99D290027FEA5 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3FF34C572DE99D290027FEA5 /* PBXTargetDependency */,
+				3FF34CB42DE99EE80027FEA5 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				3F8353862DD6D82B00122435 /* ALP_Rawr */,
@@ -184,6 +309,74 @@
 			productReference = 3F83539B2DD6D82C00122435 /* ALP_RawrUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3FF34C592DE99D290027FEA5 /* Build configuration list for PBXNativeTarget "ALP_RawrWatchApp Watch App" */;
+			buildPhases = (
+				3FF34C342DE99D270027FEA5 /* Sources */,
+				3FF34C352DE99D270027FEA5 /* Frameworks */,
+				3FF34C362DE99D270027FEA5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3FF34C392DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */,
+			);
+			name = "ALP_RawrWatchApp Watch App";
+			packageProductDependencies = (
+			);
+			productName = "ALP_RawrWatchApp Watch App";
+			productReference = 3FF34C382DE99D270027FEA5 /* ALP_RawrWatchApp Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3FF34C432DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3FF34C5D2DE99D290027FEA5 /* Build configuration list for PBXNativeTarget "ALP_RawrWatchApp Watch AppTests" */;
+			buildPhases = (
+				3FF34C402DE99D290027FEA5 /* Sources */,
+				3FF34C412DE99D290027FEA5 /* Frameworks */,
+				3FF34C422DE99D290027FEA5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3FF34C462DE99D290027FEA5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3FF34C472DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests */,
+			);
+			name = "ALP_RawrWatchApp Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "ALP_RawrWatchApp Watch AppTests";
+			productReference = 3FF34C442DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		3FF34C4D2DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3FF34C602DE99D290027FEA5 /* Build configuration list for PBXNativeTarget "ALP_RawrWatchApp Watch AppUITests" */;
+			buildPhases = (
+				3FF34C4A2DE99D290027FEA5 /* Sources */,
+				3FF34C4B2DE99D290027FEA5 /* Frameworks */,
+				3FF34C4C2DE99D290027FEA5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3FF34C502DE99D290027FEA5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3FF34C512DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests */,
+			);
+			name = "ALP_RawrWatchApp Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "ALP_RawrWatchApp Watch AppUITests";
+			productReference = 3FF34C4E2DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -204,6 +397,17 @@
 					3F83539A2DD6D82C00122435 = {
 						CreatedOnToolsVersion = 16.3;
 						TestTargetID = 3F8353832DD6D82B00122435;
+					};
+					3FF34C372DE99D270027FEA5 = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					3FF34C432DE99D290027FEA5 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 3FF34C372DE99D270027FEA5;
+					};
+					3FF34C4D2DE99D290027FEA5 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 3FF34C372DE99D270027FEA5;
 					};
 				};
 			};
@@ -227,6 +431,9 @@
 				3F8353832DD6D82B00122435 /* ALP_Rawr */,
 				3F8353902DD6D82C00122435 /* ALP_RawrTests */,
 				3F83539A2DD6D82C00122435 /* ALP_RawrUITests */,
+				3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */,
+				3FF34C432DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppTests */,
+				3FF34C4D2DE99D290027FEA5 /* ALP_RawrWatchApp Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -247,6 +454,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		3F8353992DD6D82C00122435 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FF34C362DE99D270027FEA5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FF34C422DE99D290027FEA5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FF34C4C2DE99D290027FEA5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -277,6 +505,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3FF34C342DE99D270027FEA5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FF34C402DE99D290027FEA5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FF34C4A2DE99D290027FEA5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -289,6 +538,26 @@
 			isa = PBXTargetDependency;
 			target = 3F8353832DD6D82B00122435 /* ALP_Rawr */;
 			targetProxy = 3F83539C2DD6D82C00122435 /* PBXContainerItemProxy */;
+		};
+		3FF34C462DE99D290027FEA5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */;
+			targetProxy = 3FF34C452DE99D290027FEA5 /* PBXContainerItemProxy */;
+		};
+		3FF34C502DE99D290027FEA5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */;
+			targetProxy = 3FF34C4F2DE99D290027FEA5 /* PBXContainerItemProxy */;
+		};
+		3FF34C572DE99D290027FEA5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */;
+			targetProxy = 3FF34C562DE99D290027FEA5 /* PBXContainerItemProxy */;
+		};
+		3FF34CB42DE99EE80027FEA5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */;
+			targetProxy = 3FF34CB32DE99EE80027FEA5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -534,6 +803,136 @@
 			};
 			name = Release;
 		};
+		3FF34C5A2DE99D290027FEA5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ALP_RawrWatchApp;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "IMT.ALP-Rawr";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "IMT.ALP-Rawr.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.4;
+			};
+			name = Debug;
+		};
+		3FF34C5B2DE99D290027FEA5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ALP_RawrWatchApp;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "IMT.ALP-Rawr";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "IMT.ALP-Rawr.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.4;
+			};
+			name = Release;
+		};
+		3FF34C5E2DE99D290027FEA5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "UC-IMT.ALP-RawrWatchApp-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ALP_RawrWatchApp Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ALP_RawrWatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.4;
+			};
+			name = Debug;
+		};
+		3FF34C5F2DE99D290027FEA5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "UC-IMT.ALP-RawrWatchApp-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ALP_RawrWatchApp Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ALP_RawrWatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.4;
+			};
+			name = Release;
+		};
+		3FF34C612DE99D290027FEA5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "UC-IMT.ALP-RawrWatchApp-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "ALP_RawrWatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.4;
+			};
+			name = Debug;
+		};
+		3FF34C622DE99D290027FEA5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "UC-IMT.ALP-RawrWatchApp-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "ALP_RawrWatchApp Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.4;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -569,6 +968,33 @@
 			buildConfigurations = (
 				3F8353AC2DD6D82C00122435 /* Debug */,
 				3F8353AD2DD6D82C00122435 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3FF34C592DE99D290027FEA5 /* Build configuration list for PBXNativeTarget "ALP_RawrWatchApp Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FF34C5A2DE99D290027FEA5 /* Debug */,
+				3FF34C5B2DE99D290027FEA5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3FF34C5D2DE99D290027FEA5 /* Build configuration list for PBXNativeTarget "ALP_RawrWatchApp Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FF34C5E2DE99D290027FEA5 /* Debug */,
+				3FF34C5F2DE99D290027FEA5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3FF34C602DE99D290027FEA5 /* Build configuration list for PBXNativeTarget "ALP_RawrWatchApp Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FF34C612DE99D290027FEA5 /* Debug */,
+				3FF34C622DE99D290027FEA5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

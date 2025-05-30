@@ -8,8 +8,21 @@
 import Foundation
 import FirebaseDatabase
 import FirebaseAuth
+import WatchConnectivity
 
-class PetHomeViewModel: ObservableObject {
+class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
+        
+    }
+    
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        
+    }
+    
+    func sessionDidDeactivate(_ session: WCSession) {
+        
+    }
+    
     
     @Published var pet: PetModel = PetModel()
     @Published var currEmotion: String = "Happy"
@@ -22,8 +35,13 @@ class PetHomeViewModel: ObservableObject {
     
     private var timer: Timer?
     
-    init(petService: PetService = PetService()) {
+    var session: WCSession
+    init(petService: PetService = PetService(), session: WCSession = .default) {
         self.petService = petService
+        self.session = session
+        super.init()
+        session.delegate = self
+        session.activate()
     }
     
     deinit {
