@@ -48,7 +48,7 @@ struct DiaryView: View {
                 }
             }
             .refreshable {
-                diaryViewModel.loadEntries(for: authViewModel.myUser.uid)
+                diaryViewModel.loadEntries(for: authViewModel.user?.uid ?? "")
             }
         }
     }
