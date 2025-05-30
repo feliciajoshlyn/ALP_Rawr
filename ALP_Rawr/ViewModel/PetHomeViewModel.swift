@@ -277,4 +277,10 @@ class PetHomeViewModel: ObservableObject {
         self.updatePetStatusPeriodically()
         self.checkCurrEmotion()
     }
+    
+    func resetViewModel(){
+        currEmotion = "Happy"
+        icon = "happybadge"
+        hasFetchData = false
+    }
 }

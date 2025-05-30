@@ -19,8 +19,6 @@ class AuthViewModel: ObservableObject {
     @Published var falseCredential: Bool
     @Published var petName: String = ""
     
-    private var ref: DatabaseReference
-    
     private let petService: PetService
     private let userService: UserService
     
@@ -30,7 +28,6 @@ class AuthViewModel: ObservableObject {
         self.falseCredential = false
         self.myUser = MyUser()
         
-        self.ref = Database.database().reference().child("pets")
         self.petService = petService
         self.userService = userService
         
@@ -136,7 +133,6 @@ class AuthViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Async Pet Creation Helper
     func createPetAsync(pet: PetModel) async -> Bool {
         return await withCheckedContinuation { continuation in
             petService.createPet(pet: pet) { success in
