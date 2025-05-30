@@ -31,7 +31,7 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     private let petService: PetService
 
     private var user: User?
-    private(set) var hasFetchData: Bool = false
+    @Published var hasFetchData: Bool = false
     
     private var timer: Timer?
     
@@ -47,28 +47,6 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     deinit {
         timer?.invalidate()
     }
-    
-//    func fetchPetData() {
-//        guard !hasFetchData else { return }
-//        hasFetchData = true
-//        
-//        self.user = Auth.auth().currentUser
-//        guard let userId = user?.uid else {
-//            setupDefaultPet()
-//            return
-//        }
-//        
-//        petService.fetchPet(for: userId) { [weak self] pet in
-//            DispatchQueue.main.async{
-//                if let fetchedPet = pet {
-//                    self?.pet = fetchedPet
-//                } else {
-//                    self?.setupDefaultPet()
-//                }
-//                self?.startTimer()
-//            }
-//        }
-//    }
     
     func fetchPetData() {
         print("fetchPetData called")
@@ -97,17 +75,17 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
                     print("Failed to fetch pet, setting up default pet")
                     self?.setupDefaultPet()
                 }
-                self?.startTimer()
             }
         }
+        self.startTimer()
     }
 
     
     private func setupDefaultPet(){
         self.pet = PetModel(
             name: "Default",
-            hp: 100,
-            hunger: 100,
+            hp: 100.0,
+            hunger: 100.0,
             isHungry: false,
             bond: 0,
             lastFed: Date(),
@@ -119,15 +97,15 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
             emotions: [
                 "Happy":PetEmotionModel(
                     name: "Happy",
-                    level: 100,
-                    limit: 40,
+                    level: 100.0,
+                    limit: 40.0,
                     priority: 1,
                     icon: "happybadge"
                 ),
-                "Sad":PetEmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
-                "Angry":PetEmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
-                "Bored":PetEmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
-                "Fear":PetEmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
+                "Sad":PetEmotionModel(name: "Sad", level: 0.0, limit: 50.0, priority: 2, icon: "sadbadge"),
+                "Angry":PetEmotionModel(name: "Angry", level: 0.0, limit: 70.0, priority: 3, icon: "angrybadge"),
+                "Bored":PetEmotionModel(name: "Bored", level: 0.0, limit: 60.0, priority: 4, icon: "boredbadge"),
+                "Fear":PetEmotionModel(name: "Fear", level: 0.0, limit: 80.0, priority: 5, icon: "fearbadge")
             ],
             userId: ""
         )
@@ -177,6 +155,11 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
     
+    func roundToDecimal(_ value: Double, places: Int) -> Double {
+        let factor = pow(10.0, Double(places))
+        return (value * factor).rounded() / factor
+    }
+    
     func updatePetStatusPeriodically() {
         let now = Date()
         let lastChecked = pet.lastChecked
@@ -184,41 +167,42 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         
         guard timePassed >= 60 else { return } // Only update if at least 1 minute has passed
         
-        let minutesPassed = Int(timePassed / 60)
+        let minutesPassed: Double = roundToDecimal(timePassed / 60.0, places: 1)
         
         // Adjust Hunger (decreases slowly - every 3 minutes decreases by 1)
-        let hungerDecrease = minutesPassed / 3
-        pet.hunger = max(0, pet.hunger - hungerDecrease)
-        pet.isHungry = pet.hunger < 40
+        let hungerDecrease: Double = roundToDecimal(minutesPassed / 3.0, places: 1)
+        pet.hunger = max(0.0, pet.hunger - hungerDecrease)
+        pet.isHungry = pet.hunger < 40.0
 
         // Calculate hours since activities
-        let hoursSinceFed = Int(now.timeIntervalSince(pet.lastFed) / 3600)
-        let hoursSincePetted = Int(now.timeIntervalSince(pet.lastPetted) / 3600)
-        let hoursSinceWalked = Int(now.timeIntervalSince(pet.lastWalked) / 3600)
-        let hoursSinceShowered = Int(now.timeIntervalSince(pet.lastShower) / 3600)
+        let hoursSinceFed = now.timeIntervalSince(pet.lastFed) / 3600
+        let hoursSincePetted = now.timeIntervalSince(pet.lastPetted) / 3600
+        let hoursSinceWalked = now.timeIntervalSince(pet.lastWalked) / 3600
+        let hoursSinceShowered = now.timeIntervalSince(pet.lastShower) / 3600
 
         // Adjust HP with more balanced rates
-        if pet.hunger >= 50 {
+        if pet.hunger >= 50.0 {
             // Regenerate HP when well-fed (slower regeneration)
-            let hpIncrease = minutesPassed / 5 // Gain 1 HP every 5 minutes when well-fed
-            pet.hp = min(100, pet.hp + hpIncrease)
+            let hpIncrease: Double = roundToDecimal(minutesPassed / 5.0, places: 1) // Gain 1 HP every 5 minutes when well-fed
+            pet.hp = min(100.0, pet.hp + hpIncrease)
         } else {
             // Apply decay with more gradual rates
-            if pet.hunger < 15 { // Only severe hunger affects HP
-                let hpDecrease = minutesPassed / 8 // Lose 1 HP every 8 minutes when starving
-                pet.hp = max(1, pet.hp - hpDecrease)
+            if pet.hunger < 15.0 { // Only severe hunger affects HP
+                let hpDecrease = roundToDecimal(minutesPassed / 8, places: 3)  // Lose 1 HP every 8 minutes when starving
+                pet.hp = max(1.0, pet.hp - hpDecrease)
             }
             
             // Neglect penalties (much more gradual)
-            var neglectPenalty = 0
-            if hoursSinceFed > 8 { neglectPenalty += 1 }
-            if hoursSincePetted > 12 { neglectPenalty += 1 }
-            if hoursSinceWalked > 16 { neglectPenalty += 1 }
-            if hoursSinceShowered > 30 { neglectPenalty += 1 }
+            var neglectPenalty: Double = 0.0
+            if hoursSinceFed > 8.0 { neglectPenalty += 1.0 }
+            if hoursSincePetted > 12.0 { neglectPenalty += 1.0 }
+            if hoursSinceWalked > 16.0 { neglectPenalty += 1.0 }
+            if hoursSinceShowered > 30.0 { neglectPenalty += 1.0 }
             
-            if neglectPenalty > 0 {
-                let hpDecrease = (minutesPassed * neglectPenalty) / 15 // Gradual penalty based on neglect
-                pet.hp = max(1, pet.hp - hpDecrease)
+            if neglectPenalty > 0.0 {
+                let hpDecrease: Double = roundToDecimal((minutesPassed * neglectPenalty) / 15, places: 2) // Gradual penalty based on neglect
+                pet.hp = max(1.0, pet.hp - hpDecrease)
+                
             }
         }
 
@@ -228,46 +212,46 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
             
             switch name {
             case "Sad":
-                if hoursSincePetted > 6 {
+                if hoursSincePetted > 6.0 {
                     // Gradual increase in sadness when not petted
-                    let increase = min(3, minutesPassed / 10) // Max 3 points per update
-                    updated.level = min(100, updated.level + increase)
+                    let increase = min(3.0, roundToDecimal(minutesPassed / 10.0, places: 2)) // Max 3 points per update
+                    updated.level = min(100.0, updated.level + increase)
                 } else {
                     // Slowly decrease sadness when recently petted
-                    let decrease = minutesPassed / 15
-                    updated.level = max(0, updated.level - decrease)
+                    let decrease: Double = roundToDecimal(minutesPassed / 15.0, places: 2)
+                    updated.level = max(0.0, updated.level - decrease)
                 }
                 
             case "Angry":
-                if pet.hunger < 30 {
+                if pet.hunger < 30.0 {
                     // Get angry when hungry
-                    let increase = min(2, minutesPassed / 8)
-                    updated.level = min(100, updated.level + increase)
-                } else if pet.hunger > 60 {
+                    let increase: Double = min(2.0, roundToDecimal(minutesPassed / 8.0, places: 3))
+                    updated.level = min(100.0, updated.level + increase)
+                } else if pet.hunger > 60.0 {
                     // Calm down when well-fed
-                    let decrease = minutesPassed / 12
-                    updated.level = max(0, updated.level - decrease)
+                    let decrease: Double = roundToDecimal(minutesPassed / 12.0, places: 3)
+                    updated.level = max(0.0, updated.level - decrease)
                 }
                 
             case "Bored":
-                if hoursSinceWalked > 8 {
+                if hoursSinceWalked > 8.0 {
                     // Get bored without walks
-                    let increase = min(4, minutesPassed / 6) // Boredom builds faster
-                    updated.level = min(100, updated.level + increase)
+                    let increase: Double = min(4.0, roundToDecimal(minutesPassed / 6.0, places: 3)) // Boredom builds faster
+                    updated.level = min(100.0, updated.level + increase)
                 } else {
                     // Less bored after walks
-                    let decrease = minutesPassed / 10
-                    updated.level = max(0, updated.level - decrease)
+                    let decrease: Double = roundToDecimal(minutesPassed / 10.0, places: 3)
+                    updated.level = max(0.0, updated.level - decrease)
                 }
                 
             case "Fear":
-                if hoursSinceShowered > 48 { // Only after being very dirty
+                if hoursSinceShowered > 48.0 { // Only after being very dirty
                     // Slight fear from being too dirty
-                    let increase = min(1, minutesPassed / 20)
-                    updated.level = min(100, updated.level + increase)
+                    let increase: Double = min(1.0, roundToDecimal(minutesPassed / 20.0, places: 3))
+                    updated.level = min(100.0, updated.level + increase)
                 } else {
                     // Fear naturally decreases over time
-                    let decrease = minutesPassed / 25
+                    let decrease: Double = roundToDecimal(minutesPassed / 25.0, places: 3)
                     updated.level = max(0, updated.level - decrease)
                 }
                 
@@ -277,12 +261,12 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
                 
                 if overallCare > 70 {
                     // Increase happiness when well cared for
-                    let increase = minutesPassed / 8
-                    updated.level = min(100, updated.level + increase)
-                } else if overallCare < 40 {
+                    let increase: Double = roundToDecimal(minutesPassed / 8.0, places: 3)
+                    updated.level = min(100.0, updated.level + increase)
+                } else if overallCare < 40.0 {
                     // Decrease happiness when neglected
-                    let decrease = minutesPassed / 6
-                    updated.level = max(0, updated.level - decrease)
+                    let decrease: Double = roundToDecimal(minutesPassed / 6.0, places: 3)
+                    updated.level = max(0.0, updated.level - decrease)
                 }
                 // Maintain current level if care is moderate (40-70)
                 
@@ -297,11 +281,61 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         checkCurrEmotion()
     }
     
+//    func updatePetStatusPeriodicallyFaster() {
+//        let now = Date()
+//        let lastChecked = pet.lastChecked
+//        let timePassed = now.timeIntervalSince(lastChecked) // in seconds
+//        
+//        guard timePassed >= 60 else { return } // Only update if at least 1 minute has passed
+//        
+//        let minutesPassed = Double(timePassed / 60.0)
+//        
+//        // Adjust Hunger (every minute decreases by 1)
+//        pet.hunger = max(0, pet.hunger - minutesPassed)
+//        pet.isHungry = pet.hunger < 40
+//
+//        // Adjust HP based on lack of interaction
+//        let hoursSinceFed = Double(now.timeIntervalSince(pet.lastFed) / 3600.0)
+//        let hoursSincePetted = Double(now.timeIntervalSince(pet.lastPetted) / 3600.0)
+//        let hoursSinceWalked = Double(now.timeIntervalSince(pet.lastWalked) / 3600.0)
+//        let hoursSinceShowered = Double(now.timeIntervalSince(pet.lastShower) / 3600.0)
+//
+//        // HP decays slightly if hunger is very low or if neglected
+//        if pet.hunger < 20.0 {
+//            pet.hp = max(0.0, pet.hp - minutesPassed / 2.0)
+//        }
+//        if hoursSinceFed > 6.0 || hoursSincePetted > 8.0 || hoursSinceWalked > 12.0 || hoursSinceShowered > 24.0 {
+//            pet.hp = max(0, pet.hp - minutesPassed / 3.0)
+//        }
+//
+//        // Increase emotion levels based on neglect
+//        for (name, emotion) in pet.emotions {
+//            var updated = emotion
+//            switch name {
+//            case "Sad":
+//                updated.level = min(100, updated.level + (hoursSincePetted > 8 ? minutesPassed / 3 : 0))
+//            case "Angry":
+//                updated.level = min(100, updated.level + (hoursSinceFed > 6 ? minutesPassed / 4 : 0))
+//            case "Bored":
+//                updated.level = min(100, updated.level + (hoursSinceWalked > 12 ? minutesPassed / 2 : 0))
+//            case "Fear":
+//                updated.level = min(100, updated.level + (hoursSinceShowered > 24 ? minutesPassed / 2 : 0))
+//            case "Happy":
+//                updated.level = max(0, updated.level - minutesPassed / 2)
+//            default:
+//                break
+//            }
+//            pet.emotions[name] = updated
+//        }
+//
+//        pet.lastChecked = now
+//        checkCurrEmotion()
+//    }
+    
     private func startTimer() {
         timer?.invalidate() // in case it's called twice
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             DispatchQueue.main.async {
-                print("Timer is going")
                 self?.updatePetStatusPeriodically()
             }
         }
@@ -334,5 +368,6 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         currEmotion = "Happy"
         icon = "happybadge"
         hasFetchData = false
+        timer?.invalidate()
     }
 }

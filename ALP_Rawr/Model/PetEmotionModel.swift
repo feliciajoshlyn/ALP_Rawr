@@ -9,8 +9,8 @@ import Foundation
 
 struct PetEmotionModel: Codable {
     let name: String
-    var level: Int
-    let limit: Int
+    var level: Double
+    let limit: Double
     let priority: Int
     let icon: String
     
@@ -18,7 +18,7 @@ struct PetEmotionModel: Codable {
         return level >= limit
     }
     
-    mutating func apply(change: Int){
-        self.level = max(0, min(100, self.level + change))
+    mutating func apply(change: Double){
+        self.level = max(0.0, min(100.0, self.level + change))
     }
 }
