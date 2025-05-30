@@ -7,6 +7,7 @@
 
 import SpriteKit
 import Combine
+import SwiftUI
 
 class SpriteScene: SKScene {
     private var spriteNode: SKSpriteNode!
@@ -55,14 +56,21 @@ class SpriteScene: SKScene {
         spriteModel.position = CGPoint(x: size.width / 2, y: size.height / 1.5)
         spriteNode = SKSpriteNode(imageNamed: "dog_inplace_right")
         spriteNode.position = spriteModel.position
-        spriteNode.size = CGSize(width: 150, height: 150)
+        
+        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
+        let width = isIpad ? 300 : 150
+        let height = isIpad ? 300 : 150
+        
+        spriteNode.size = CGSize(width: width, height: height)
         addChild(spriteNode)
     }
     
     private func setupSoap(){
         let texture = SKTexture(imageNamed: "soap")
         let aspectRatio = texture.size().width / texture.size().height
-        let desiredHeight: CGFloat = 55
+        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
+        
+        let desiredHeight: CGFloat = isIpad ? 110 : 55
         let calculatedWidth = desiredHeight * aspectRatio
         
         soapNode = SKSpriteNode(imageNamed: "soap")
@@ -89,7 +97,9 @@ class SpriteScene: SKScene {
     private func setupFood(){
         let texture = SKTexture(imageNamed: "kibble")
         let aspectRatio = texture.size().width / texture.size().height
-        let desiredHeight: CGFloat = 55
+        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
+        
+        let desiredHeight: CGFloat = isIpad ? 110 : 55
         let calculatedWidth = desiredHeight * aspectRatio
         
         foodNode = SKSpriteNode(imageNamed: "kibble")
@@ -169,20 +179,21 @@ class SpriteScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
-
+        
         // Always reset both drag states first
         isDraggingSoap = false
         isDraggingFood = false
-
-        if foodNode.contains(location) {
+        
+        // Check draggable items first, but only if they're not overlapping the dog
+        if foodNode.contains(location) && !foodNode.frame.intersects(spriteNode.frame) {
             isDraggingFood = true
-        } else if soapNode.contains(location) && !isSoapReturning {
+        } else if soapNode.contains(location) && !isSoapReturning && !soapNode.frame.intersects(spriteNode.frame) {
             isDraggingSoap = true
         } else if spriteNode.contains(location) {
+            // Only pet if no items are being dragged and no items are overlapping
             onPet?()
         }
     }
-
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }

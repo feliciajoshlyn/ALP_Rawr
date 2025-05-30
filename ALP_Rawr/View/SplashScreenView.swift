@@ -26,7 +26,7 @@ struct SplashScreenView: View {
                     .padding(64)
             }
             .onAppear{
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2){
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.4){
                     withAnimation{
                         self.isActive = true
                     }
