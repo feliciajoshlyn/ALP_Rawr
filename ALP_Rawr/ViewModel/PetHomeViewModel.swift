@@ -48,28 +48,6 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         timer?.invalidate()
     }
     
-//    func fetchPetData() {
-//        guard !hasFetchData else { return }
-//        hasFetchData = true
-//        
-//        self.user = Auth.auth().currentUser
-//        guard let userId = user?.uid else {
-//            setupDefaultPet()
-//            return
-//        }
-//        
-//        petService.fetchPet(for: userId) { [weak self] pet in
-//            DispatchQueue.main.async{
-//                if let fetchedPet = pet {
-//                    self?.pet = fetchedPet
-//                } else {
-//                    self?.setupDefaultPet()
-//                }
-//                self?.startTimer()
-//            }
-//        }
-//    }
-    
     func fetchPetData() {
         print("fetchPetData called")
         guard !hasFetchData else {
