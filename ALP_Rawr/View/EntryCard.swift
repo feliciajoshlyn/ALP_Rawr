@@ -15,11 +15,13 @@ struct EntryCard: View {
 //    let timeAgo: String
     
     @State private var isLiked = false
+    @State private var username: String = "Loading..."
+
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(authViewModel.myUser.username)
+                Text(username)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.primary)
                 
@@ -89,7 +91,16 @@ struct EntryCard: View {
                     lineWidth: 2
                 )
         )
+        .onAppear {
+             DiaryService.shared.searchUser(byUID: diaryEntry.userId) { user in
+                 DispatchQueue.main.async {
+                     self.username = user?.username ?? "Unknown"
+                 }
+             }
+         }
     }
+
+
 }
 
 #Preview {

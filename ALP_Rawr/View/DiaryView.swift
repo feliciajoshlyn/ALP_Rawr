@@ -108,8 +108,6 @@ struct AddFriendView: View {
                         VStack(spacing: 8) {
                             Text("Found: \(friend.username)")
                                 .fontWeight(.medium)
-                            Text(friend.uid)
-                            Text(authViewModel.myUser.uid)
 
                             if diaryViewModel.friends.contains(where: { $0.uid == friend.uid }) {
                                 Text("✅ Already friends")
