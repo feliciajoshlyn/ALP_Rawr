@@ -29,60 +29,63 @@ struct EntryCard: View {
 //                    .foregroundColor(.secondary)
             }
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(diaryEntry.title)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
                 Text(diaryEntry.text)
                     .font(.system(size: 14, weight: .regular))
                     .lineLimit(nil)
                     .foregroundColor(.primary)
                 
-                HStack(spacing: 16) {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            isLiked.toggle()
-                            // Update likes count optimistically
-                            likesCount += isLiked ? 1 : -1
-                        }
-                        diaryViewModel.addReaction(to: diaryEntry.id, Reaction(
-                            id: authViewModel.user?.uid ?? "",
-                            data:[
-                                "userId": authViewModel.user?.uid ?? "",
-                                "liked": isLiked,
-                                "comment": "",
-                                "createdAt": Date()
-                            ])
-                        )
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: isLiked ? "heart.fill" : "heart")
-                                .foregroundColor(isLiked ? .pink : .secondary)
-                                .font(.system(size: 16))
-                                .scaleEffect(isLiked ? 1.1 : 1.0)
-                            
-                            Text("\(likesCount)")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    // Comment button
-                    Button(action: {
-                        // Comment action
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "bubble.left")
-                                .foregroundColor(.secondary)
-                                .font(.system(size: 16))
-                            
-//                            Text("\(commentsCount)")
+//                HStack(spacing: 16) {
+//                    Button(action: {
+//                        withAnimation(.easeInOut(duration: 0.2)) {
+//                            isLiked.toggle()
+//                            // Update likes count optimistically
+//                            likesCount += isLiked ? 1 : -1
+//                        }
+//                        diaryViewModel.addReaction(to: diaryEntry.id, Reaction(
+//                            id: authViewModel.user?.uid ?? "",
+//                            data:[
+//                                "userId": authViewModel.user?.uid ?? "",
+//                                "liked": isLiked,
+//                                "comment": "",
+//                                "createdAt": Date()
+//                            ])
+//                        )
+//                    }) {
+//                        HStack(spacing: 6) {
+//                            Image(systemName: isLiked ? "heart.fill" : "heart")
+//                                .foregroundColor(isLiked ? .pink : .secondary)
+//                                .font(.system(size: 16))
+//                                .scaleEffect(isLiked ? 1.1 : 1.0)
+//                            
+//                            Text("\(likesCount)")
 //                                .font(.system(size: 12, weight: .medium))
 //                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Spacer()
-                }
+//                        }
+//                    }
+//                    .buttonStyle(PlainButtonStyle())
+//                    
+//                    // Comment button
+//                    Button(action: {
+//                        // Comment action
+//                    }) {
+//                        HStack(spacing: 6) {
+//                            Image(systemName: "bubble.left")
+//                                .foregroundColor(.secondary)
+//                                .font(.system(size: 16))
+//                            
+////                            Text("\(commentsCount)")
+////                                .font(.system(size: 12, weight: .medium))
+////                                .foregroundColor(.secondary)
+//                        }
+//                    }
+//                    .buttonStyle(PlainButtonStyle())
+//                    
+//                    Spacer()
+//                }
             }
         }
         .padding(16)
