@@ -11,12 +11,18 @@ struct EntryCard: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var diaryViewModel: DiaryViewModel
     var diaryEntry: DiaryEntry
-    @State private var isLiked = false
+    var userReaction: Reaction?
+//    let likesCount: Int
+//    let commentsCount: Int
+//    let timeAgo: String
+    @State private var isLiked = true
+    @State private var uid = ""
     @State private var username: String = "Loading..."
-    @State private var likesCount: Int = 0
 
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Text("uid: \(uid)")
             HStack {
                 Text(username)
                         .font(.system(size: 16, weight: .semibold))
@@ -39,8 +45,6 @@ struct EntryCard: View {
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             isLiked.toggle()
-                            // Update likes count optimistically
-                            likesCount += isLiked ? 1 : -1
                         }
                         diaryViewModel.addReaction(to: diaryEntry.id, Reaction(
                             id: authViewModel.user?.uid ?? "",
@@ -51,6 +55,7 @@ struct EntryCard: View {
                                 "createdAt": Date()
                             ])
                         )
+                        diaryViewModel.loadReaction(for: diaryEntry.id, userId: authViewModel.user?.uid ?? "")
                     }) {
                         HStack(spacing: 6) {
                             Image(systemName: isLiked ? "heart.fill" : "heart")
@@ -58,7 +63,7 @@ struct EntryCard: View {
                                 .font(.system(size: 16))
                                 .scaleEffect(isLiked ? 1.1 : 1.0)
                             
-                            Text("\(likesCount)")
+                            Text("\(diaryEntry.likesCount)")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.secondary)
                         }
@@ -100,32 +105,29 @@ struct EntryCard: View {
                 )
         )
         .onAppear {
-            // Initialize likes count
-            likesCount = diaryEntry.likesCount
-            
             // Load the user's reaction for this entry
-            diaryViewModel.loadReaction(for: diaryEntry.id, userId: authViewModel.user?.uid ?? "")
-            
+            diaryViewModel.loadReaction(for: diaryEntry.id, userId: authViewModel.user?.uid ?? "hyju")
             // Fetch username
             DiaryService.shared.searchUser(byUID: diaryEntry.userId) { user in
                 DispatchQueue.main.async {
                     self.username = user?.username ?? "Unknown"
                 }
             }
+
+//            // Update UI after loading user reaction (if available in cache already)
+//            if let reaction = diaryViewModel.userReactions[diaryEntry.id]
+//            {
+//                isLiked = reaction.isLiked
+//                uid = reaction.userId
+//            } else {
+//                isLiked = false
+//            }
+            isLiked = userReaction?.isLiked ?? false
         }
-        .onReceive(diaryViewModel.$userReactions) { userReactions in
-            // Update isLiked when userReactions changes
-            if let reaction = userReactions[diaryEntry.id] {
-                DispatchQueue.main.async {
-                    self.isLiked = reaction.isLiked
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.isLiked = false
-                }
-            }
-        }
+        
     }
+
+
 }
 
 #Preview {
@@ -137,7 +139,7 @@ struct EntryCard: View {
 //            timeAgo: "2h ago"
 //        )
 //        .environmentObject(AuthViewModel())
-//
+//        
 //        EntryCard(
 //            entryText: "My dog learned a new trick today! He can now roll over AND play dead. Mom says he's the smartest dog ever 🐕💫",
 //            likesCount: 8,
