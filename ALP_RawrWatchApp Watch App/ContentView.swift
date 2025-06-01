@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var diaryWatchViewModel: DiaryWatchViewModel = DiaryWatchViewModel()
-    @StateObject private var iOSConnectivityManager: iOSConnectivity = iOSConnectivity()
+    @StateObject private var petWatchViewModel: PetWatchViewModel = PetWatchViewModel()
     @State private var showPet: Bool = false
     @State private var showDiary: Bool = false
     
@@ -31,7 +31,7 @@ struct ContentView: View {
                 }
             }
             .navigationDestination(isPresented: $showPet) {
-                PetView(iOSConnectivityManager: self.iOSConnectivityManager, showPet: $showPet)
+                PetView(petWatchViewModel: self.petWatchViewModel, showPet: $showPet)
             }
             .navigationDestination(isPresented: $showDiary){
                 DiaryWatchView(diaryWatchViewModel: self.diaryWatchViewModel)

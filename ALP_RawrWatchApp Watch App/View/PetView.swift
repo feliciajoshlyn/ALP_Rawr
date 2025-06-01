@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PetView: View {
-    @ObservedObject var iOSConnectivityManager: iOSConnectivity
+    @ObservedObject var petWatchViewModel: PetWatchViewModel
     @Binding var showPet: Bool
     
     var body: some View {
@@ -26,10 +26,14 @@ struct PetView: View {
                     .scaledToFit()
                 
                 HStack{
-                    Button(action: {}){
+                    Button(action: {
+                        petWatchViewModel.sendPetToiOS()
+                    }){
                         Text("Pet Me")
                     }
-                    Button(action: {}){
+                    Button(action: {
+                        petWatchViewModel.sendFeedToiOS()
+                    }){
                         Text("Feed Me")
                     }
                 }
@@ -39,5 +43,5 @@ struct PetView: View {
 }
 
 #Preview {
-    PetView(iOSConnectivityManager: iOSConnectivity(), showPet: .constant(true))
+    PetView(petWatchViewModel: PetWatchViewModel(), showPet: .constant(true))
 }

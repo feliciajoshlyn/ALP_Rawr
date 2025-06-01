@@ -37,11 +37,12 @@ final class ALP_RawrTests: XCTestCase {
             ],
             userId: ""
     )
+    
+    let mockPetService = MockPetService()
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         
-        let mockPetService = MockPetService()
 //        let mockWCSession = MockWCSession()
         self.petHomeViewModel = PetHomeViewModel(petService: mockPetService)
     }
@@ -63,6 +64,24 @@ final class ALP_RawrTests: XCTestCase {
         self.measure {
             // Put the code you want to measure the time of here.
         }
+    }
+    
+    func testFetchPet(){
+        let expectation = self.expectation(description: "Fetching pet")
+        
+        //Waktu blm fetch, masih pakai PetModel() aja itu nama defaultnya ""
+        XCTAssertEqual(self.petHomeViewModel.pet.name, "")
+        
+        // Diisi currentUserId nya biar functionnya gk kestop di error handling itu
+        self.petHomeViewModel.fetchPetData(currentUserId: "00")
+        
+        // Wait a moment for the async fetch to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            XCTAssertEqual(self.petHomeViewModel.pet.name, "MockPet")
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 1.0, handler: nil)
     }
     
     func testApplyInteraction(){
@@ -154,5 +173,50 @@ final class ALP_RawrTests: XCTestCase {
         XCTAssertEqual(self.petHomeViewModel.pet.emotions["Happy"]?.level ?? 0, 50, accuracy: 0.2)
     }
 
+    func testSavePet(){
+        let expectation = self.expectation(description: "Saving pet")
+        
+        //Sebelum ada yang disave mockSave nya nil
+        XCTAssertNil(self.mockPetService.mockPetSave)
+        
+        //Diisi default pet yang namanya "Default"
+        self.petHomeViewModel.pet = defaultPet
+        self.petHomeViewModel.savePet(currentUserId: "00")
+        
+        // Wait a moment for the async fetch to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            XCTAssertEqual(self.mockPetService.mockPetSave!.name, self.petHomeViewModel.pet.name)
+            expectation.fulfill()
+        }
 
+        waitForExpectations(timeout: 1.0, handler: nil)
+    }
+    
+    func testRefetchPetData(){
+        let expectation = self.expectation(description: "Refetching Pet")
+        
+        //Awalnya kalau blm diisi masih pakai default value, nama petnya itu ""
+        XCTAssertEqual(self.petHomeViewModel.pet.name, "")
+        
+        self.petHomeViewModel.refetchPetData(currentUserId: "00")
+        
+        // Wait a moment for the async fetch to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            XCTAssertEqual(self.petHomeViewModel.pet.name, "MockPet")
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 1.0, handler: nil)
+    }
+    
+    func testResetViewModel(){
+        //Pet datanya diisi dulu dan hasFetchData skrng jadi true
+        self.petHomeViewModel.fetchPetData(currentUserId: "00")
+        
+        XCTAssertTrue(self.petHomeViewModel.hasFetchData)
+        
+        //Kalau direset nanti hrsnya hasFetchData jadi false lagi
+        self.petHomeViewModel.resetViewModel()
+        XCTAssertFalse(self.petHomeViewModel.hasFetchData)
+    }
 }

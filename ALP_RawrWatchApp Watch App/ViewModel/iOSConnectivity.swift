@@ -9,7 +9,7 @@ import Foundation
 import WatchConnectivity
 
 //Handle connectivity di watchOSnya
-public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
+public class PetWatchViewModel: NSObject, WCSessionDelegate, ObservableObject {
 //    public func sessionDidBecomeInactive(_ session: WCSession) {
 //        
 //    }
@@ -19,6 +19,7 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
 //    }
     
     var session: WCSession
+    @Published var pet: PetModel = PetModel()
         
     init(session: WCSession = .default){
         self.session = session
@@ -53,6 +54,35 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
             }
         }else{
             print("Session is not reachable")
+        }
+    }
+    
+    public func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        fetchPetFromiOS(session, didReceiveMessage: message)
+    }
+    
+    func fetchPetFromiOS(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        guard let petDict = message["petData"] else {
+            print("No pet data received")
+            return
+        }
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: petDict)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601 // Same as encoder
+            let pet = try decoder.decode(PetModel.self, from: jsonData)
+            
+            // Do something with the decoded pet
+            print("Received pet: \(pet.name), hunger: \(pet.hunger)")
+            
+            // e.g., update view model or @Published pet property
+            DispatchQueue.main.async {
+                self.pet = pet
+            }
+
+        } catch {
+            print("Error decoding pet model: \(error)")
         }
     }
 }
