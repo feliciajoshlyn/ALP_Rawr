@@ -8,14 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject var diaryWatchViewModel: DiaryWatchViewModel = DiaryWatchViewModel()
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        DiaryWatchView(diaryWatchViewModel: diaryWatchViewModel)
     }
 }
 
