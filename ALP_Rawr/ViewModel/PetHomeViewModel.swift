@@ -50,7 +50,7 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     var session: WCSession
     
     //PetService diinject melalui init
-    init(petService: PetService = PetService(), session: WCSession = .default) {
+    init(petService: PetService = LivePetService(), session: WCSession = .default) {
         self.petService = petService
         self.session = session
         super.init()

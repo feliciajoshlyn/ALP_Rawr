@@ -56,7 +56,7 @@ struct MainView: View {
 #Preview {
     MainView()
         .environmentObject(AuthViewModel())
-        .environmentObject(PetHomeViewModel(petService: PetService()))
+        .environmentObject(PetHomeViewModel(petService: LivePetService()))
         .environmentObject(LocationViewModel())
         .environmentObject(DiaryViewModel())
 }

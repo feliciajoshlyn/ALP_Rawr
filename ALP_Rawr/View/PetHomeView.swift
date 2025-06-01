@@ -216,6 +216,6 @@ struct PetHomeView: View {
 #Preview {
     PetHomeView()
         .environmentObject(AuthViewModel())
-        .environmentObject(PetHomeViewModel(petService: PetService()))
+        .environmentObject(PetHomeViewModel(petService: LivePetService()))
         .environmentObject(DiaryViewModel())
 }

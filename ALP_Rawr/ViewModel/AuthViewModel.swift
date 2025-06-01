@@ -23,7 +23,7 @@ class AuthViewModel: ObservableObject {
     private let userService: UserService
     private let db = Firestore.firestore()
     
-    init(petService: PetService = PetService(), userService: UserService = UserService()){
+    init(petService: PetService = LivePetService(), userService: UserService = UserService()){
         self.user = nil
         self.isSigningIn = false
         self.falseCredential = false

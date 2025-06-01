@@ -39,7 +39,7 @@ struct SplashScreenView: View {
 #Preview {
     SplashScreenView()
         .environmentObject(AuthViewModel())
-        .environmentObject(PetHomeViewModel(petService: PetService()))
+        .environmentObject(PetHomeViewModel(petService: LivePetService()))
         .environmentObject(LocationViewModel())
         .environmentObject(DiaryViewModel())
 }

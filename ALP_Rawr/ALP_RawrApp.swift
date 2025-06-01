@@ -25,7 +25,7 @@ struct ALP_RawrApp: App {
         AppCheck.setAppCheckProviderFactory(provider)
         #endif
         
-        let petService = PetService()
+        let petService = LivePetService()
         let userService = UserService()
         
         _authViewModel = StateObject(wrappedValue: AuthViewModel(petService: petService, userService: userService))
