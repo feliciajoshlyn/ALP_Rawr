@@ -7,7 +7,75 @@
 		<key>ALP_Rawr.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>ALP_RawrWatchApp Watch App (Notification).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+		<key>ALP_RawrWatchApp Watch App.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Promises (Playground).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>WatchApp2 Watch App (Notification).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>WatchApp2 Watch App.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>uiuh Watch App (Notification).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>uiuh Watch App.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>3F8353832DD6D82B00122435</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3F8353902DD6D82C00122435</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3F83539A2DD6D82C00122435</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3FF34C372DE99D270027FEA5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3FF34C432DE99D290027FEA5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3FF34C4D2DE99D290027FEA5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

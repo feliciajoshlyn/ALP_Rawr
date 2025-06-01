@@ -48,7 +48,7 @@ struct DiaryView: View {
                 }
             }
             .refreshable {
-                diaryViewModel.loadEntries(for: authViewModel.myUser.uid)
+                diaryViewModel.loadEntries(for: authViewModel.user?.uid ?? "")
             }
         }
     }
@@ -88,6 +88,7 @@ struct AddFriendView: View {
                 // Search Field
                 TextField("Enter friend's UID", text: $searchUID)
                     .textFieldStyle(.roundedBorder)
+                    .keyboardType(.default)
                     .onChange(of: searchUID) {
                         didSearch = false
                         if !searchUID.isEmpty{
@@ -108,8 +109,6 @@ struct AddFriendView: View {
                         VStack(spacing: 8) {
                             Text("Found: \(friend.username)")
                                 .fontWeight(.medium)
-                            Text(friend.uid)
-                            Text(authViewModel.myUser.uid)
 
                             if diaryViewModel.friends.contains(where: { $0.uid == friend.uid }) {
                                 Text("✅ Already friends")

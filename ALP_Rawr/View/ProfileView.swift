@@ -104,6 +104,7 @@ struct ProfileView: View {
             Button("Log Out", role: .destructive) {
                 Task {
                     petHomeViewModel.savePet()
+                    petHomeViewModel.resetViewModel()
                     authViewModel.signOut()
                     authViewModel.checkUserSession()
                     showAuthSheet = !authViewModel.isSigningIn

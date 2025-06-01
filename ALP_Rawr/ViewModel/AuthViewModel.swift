@@ -158,10 +158,10 @@ class AuthViewModel: ObservableObject {
         
         return PetModel(
             name: petName,
-            hp: 100,
-            hunger: 100,
+            hp: 100.0,
+            hunger: 100.0,
             isHungry: false,
-            bond: 0,
+            bond: 0.0,
             lastFed: now,
             lastPetted: now,
             lastWalked: now,
@@ -171,15 +171,15 @@ class AuthViewModel: ObservableObject {
             emotions: [
                 "Happy":PetEmotionModel(
                     name: "Happy",
-                    level: 100,
-                    limit: 40,
+                    level: 100.0,
+                    limit: 40.0,
                     priority: 1,
                     icon: "happybadge"
                 ),
-                "Sad":PetEmotionModel(name: "Sad", level: 0, limit: 50, priority: 2, icon: "sadbadge"),
-                "Angry":PetEmotionModel(name: "Angry", level: 0, limit: 70, priority: 3, icon: "angrybadge"),
-                "Bored":PetEmotionModel(name: "Bored", level: 0, limit: 60, priority: 4, icon: "boredbadge"),
-                "Fear":PetEmotionModel(name: "Fear", level: 0, limit: 80, priority: 5, icon: "fearbadge")
+                "Sad":PetEmotionModel(name: "Sad", level: 0.0, limit: 50.0, priority: 2, icon: "sadbadge"),
+                "Angry":PetEmotionModel(name: "Angry", level: 0.0, limit: 70.0, priority: 3, icon: "angrybadge"),
+                "Bored":PetEmotionModel(name: "Bored", level: 0.0, limit: 60.0, priority: 4, icon: "boredbadge"),
+                "Fear":PetEmotionModel(name: "Fear", level: 0.0, limit: 80.0, priority: 5, icon: "fearbadge")
             ],
             userId: userId
         )

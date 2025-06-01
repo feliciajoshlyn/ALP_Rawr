@@ -7,35 +7,36 @@
 
 import Foundation
 
+
 struct InteractionEffect {
-    static let effects: [InteractionType: [String: Int]] = [
+    static let effects: [InteractionType: [String: Double]] = [
         .petting: [
-            "Happy": +10,
-            "Sad": -8,
-            "Angry": -6,
-            "Bored": -4,
-            "Fear": -10
+            "Happy": +6.0,      // Reduced from +10 - moderate happiness boost
+            "Sad": -12.0,       // Stronger sad reduction - petting is very comforting
+            "Angry": -8.0,      // Good for calming anger
+            "Bored": -5.0,      // Slight boredom relief
+            "Fear": -15.0       // Petting is very reassuring against fear
         ],
         .feeding: [
-            "Happy": +8,
-            "Sad": -10,
-            "Angry": -4,
-            "Bored": -3,
-            "Fear": -6
+            "Happy": +5.0,      // Moderate happiness from food
+            "Sad": -6.0,        // Food helps but doesn't cure sadness completely
+            "Angry": -12.0,     // Being hangry is real - feeding fixes anger well
+            "Bored": -2.0,      // Eating is slightly interesting
+            "Fear": -4.0        // Food provides some comfort
         ],
         .walking: [
-            "Happy": +12,
-            "Sad": -5,
-            "Angry": -8,
-            "Bored": -15,
-            "Fear": -10
+            "Happy": +8.0,      // Exercise creates good endorphins
+            "Sad": -8.0,        // Exercise helps with sadness
+            "Angry": -10.0,     // Physical activity releases anger
+            "Bored": -20.0,     // Walking is the best cure for boredom
+            "Fear": -3.0        // New environments might not help fear much
         ],
         .showering: [
-            "Happy": +4,
-            "Sad": +2,
-            "Angry": +10,
-            "Bored": -2,
-            "Fear": +12
+            "Happy": +3.0,      // Clean feels good but not exciting
+            "Sad": -2.0,        // Hygiene helps mood slightly
+            "Angry": -6.0,      // Cleaning up can be calming
+            "Bored": +4.0,      // Showering might be boring routine
+            "Fear": -8.0        // Being clean reduces some fears
         ]
     ]
 }

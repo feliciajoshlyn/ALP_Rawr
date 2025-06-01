@@ -4,3 +4,5 @@ Config/GoogleService-Info.plist
 GoogleService-Info.plist
 .DS_Store
 *.mlpackage
+*.plist
+.DS_Store
