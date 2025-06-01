@@ -50,7 +50,7 @@ final class ALP_RawrTests: XCTestCase {
         XCTAssertEqual(diaryMockService.mockDiaryEntries.count, 1)
     }
 
-    
+    //tes fetchdiary
     func testFetchDiary() async {
         let entry = DiaryEntry(id: "testId", data: [
             "userId": "123",
@@ -58,8 +58,11 @@ final class ALP_RawrTests: XCTestCase {
             "text": "Test Entry",
             "createdAt": Date()
         ])
+        diaryMockService.mockUser = MyUser(uid: "testId", username: "testUsername", friends: ["testFriendId"])
+        //put it in the entry
         diaryMockService.mockDiaryEntries = [entry]
-        diaryMockService.mockFriends = ["testFriendId"]
+        diaryMockService.mockFriends = ["testId"]
+        //tes dari sisi friendId ada or no
         diaryViewModel.loadEntries(for: "testFriendId")
         XCTAssertTrue(diaryMockService.mockDiaryEntries.count > 0)
         XCTAssertEqual(diaryMockService.mockDiaryEntries.first?.id, "testId")
