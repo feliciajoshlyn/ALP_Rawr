@@ -31,10 +31,13 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var simulatedIndex = 0
     private let simulatedPath: [CLLocationCoordinate2D] = [
         CLLocationCoordinate2D(latitude: -7.28352, longitude: 112.63169),
-        CLLocationCoordinate2D(latitude: -7.28360, longitude: 112.63170),
-        CLLocationCoordinate2D(latitude: -7.28370, longitude: 112.63172),
-        CLLocationCoordinate2D(latitude: -7.28380, longitude: 112.63174),
-        CLLocationCoordinate2D(latitude: -7.28390, longitude: 112.63176),
+        CLLocationCoordinate2D(latitude: -7.28348, longitude: 112.63170),
+        CLLocationCoordinate2D(latitude: -7.28334, longitude: 112.63172),
+        CLLocationCoordinate2D(latitude: -7.28328, longitude: 112.63174),
+        CLLocationCoordinate2D(latitude: -7.28319, longitude: 112.63176),
+        CLLocationCoordinate2D(latitude: -7.28304, longitude: 112.63172),
+        CLLocationCoordinate2D(latitude: -7.28295, longitude: 112.63174),
+        CLLocationCoordinate2D(latitude: -7.28288, longitude: 112.63176),
     ]
     
     private var lastLocation: CLLocation?
@@ -46,7 +49,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         authorizationStatus = manager.authorizationStatus
     }
     
-    func updatePetLastWalkedByName(petName: String) {
+    func updatePetLastWalkedById(id: String) {
             let dbRef = Database.database().reference().child("pets")
             
             dbRef.observeSingleEvent(of: .value) { snapshot in
@@ -56,49 +59,22 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 }
                 
                 for (petId, petData) in allPets {
-                    if let name = petData["name"] as? String, name.lowercased() == petName.lowercased() {
+                    if let userId = petData["userId"] as? String, userId == id {
                         let lastWalkedString = ISO8601DateFormatter().string(from: self.endTime ?? Date())
                         dbRef.child(petId).child("lastWalked").setValue(lastWalkedString) { error, _ in
                             if let error = error {
                                 print("Failed to update lastWalked: \(error.localizedDescription)")
                             } else {
-                                print("Successfully updated lastWalked for \(name)")
+                                print("Successfully updated lastWalked for \(userId)")
                             }
                         }
                         return
                     }
                 }
                 
-                print("Pet with name \(petName) not found.")
+                print("Pet with id: \(id) not found.")
             }
         }
-    
-    func updatePetLastWalkedByCurrentUser() {
-        guard let currentUserId = Auth.auth().currentUser?.uid else {
-            print("User not logged in")
-            return
-        }
-
-        let dbRef = Database.database().reference().child("pets")
-        
-        dbRef.observeSingleEvent(of: .value) { snapshot in
-            guard let allPets = snapshot.value as? [String: [String: Any]] else {
-                print("Failed to cast pet data")
-                return
-            }
-
-            for (_, petData) in allPets {
-                if let userId = petData["userId"] as? String,
-                   userId == currentUserId,
-                   let petName = petData["name"] as? String {
-                    self.updatePetLastWalkedByName(petName: petName)
-                    return
-                }
-            }
-
-            print("No pet found for current user.")
-        }
-    }
 
     
     func startWalking() {
@@ -178,7 +154,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         isWalking = false
         
         print("Walk stopped - Distance: \(walkingDistance), Duration: \(walkingDuration)")
-        self.updatePetLastWalkedByCurrentUser()
+        self.updatePetLastWalkedById(id: Auth.auth().currentUser?.uid ?? "")
     }
 
     // Save to walk model
@@ -206,7 +182,6 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             notes: nil
         )
         
-        print("Walk model created - Distance: \(distance), Duration: \(duration), UserId: \(userId)")
         return walkModel
     }
 
@@ -251,4 +226,6 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             manager.requestLocation()
         }
     }
+    
+    
 }

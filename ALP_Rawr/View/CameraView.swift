@@ -8,56 +8,191 @@
 import SwiftUI
 
 struct CameraView: View {
-    @StateObject private var viewModel = AgePredictionViewModel()
+    @ObservedObject var viewModel: AgePredictionViewModel
+    @Environment(\.dismiss) private var dismiss
+    
+    init(viewModel: AgePredictionViewModel) {
+        self.viewModel = viewModel
+    }
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                if let image = viewModel.capturedImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 300)
-                        .cornerRadius(12)
-                        .shadow(radius: 4)
-                } else {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 300)
-                        .overlay(
-                            VStack {
-                                Image(systemName: "camera")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(.gray)
-                                Text("No image captured")
-                                    .foregroundColor(.gray)
-                            }
-                        )
-                }
-                
-                // Prediction Result
+                // Header Section
                 VStack(spacing: 8) {
-                    if viewModel.isLoading {
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text("Analyzing...")
-                                .foregroundColor(.secondary)
+                    Image(systemName: "figure.2.and.child.holdinghands")
+                        .font(.system(size: 40))
+                        .foregroundColor(.orange)
+                    
+                    Text("Parent Check Required!")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Choose a photo with your parent or guardian to start walking your pet safely!")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.orange.opacity(0.1))
+                        .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                )
+                
+                // Image Display Section
+                VStack(spacing: 12) {
+                    if let image = viewModel.capturedImage {
+                        VStack(spacing: 8) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxHeight: 250)
+                                .cornerRadius(16)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.green.opacity(0.6), lineWidth: 3)
+                                )
+                                .shadow(color: .green.opacity(0.3), radius: 8, x: 0, y: 4)
+                            
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Photo captured!")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                                    .fontWeight(.medium)
+                            }
                         }
                     } else {
-                        Text(viewModel.predictionResult)
-                            .font(.headline)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                        VStack(spacing: 16) {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(height: 250)
+                                .overlay(
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "photo.fill")
+                                            .font(.system(size: 50))
+                                            .foregroundColor(.blue.opacity(0.7))
+                                        
+                                        VStack(spacing: 4) {
+                                            Text("Ready to choose a photo!")
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                            
+                                            Text("Select a picture with both you and your parent")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                                .multilineTextAlignment(.center)
+                                        }
+                                    }
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(style: StrokeStyle(lineWidth: 2, dash: [10, 5]))
+                                        .foregroundColor(.blue.opacity(0.4))
+                                )
+                        }
+                    }
+                }
+                
+                // Analysis Result Section
+                VStack(spacing: 12) {
+                    if viewModel.isLoading {
+                        VStack(spacing: 8) {
+                            HStack {
+                                ProgressView()
+                                    .scaleEffect(1.2)
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+                                Text("🔍 Checking for parent...")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            
+                            Text("This might take a moment")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.orange.opacity(0.1))
+                        )
+                    } else if !viewModel.predictionResult.isEmpty && viewModel.predictionResult != "No prediction yet" {
+                        let parentPresent = viewModel.isParentPresent
+                        
+                        VStack(spacing: 8) {
+                            HStack {
+                                Image(systemName: parentPresent ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundColor(parentPresent ? .green : .orange)
+                                    .font(.title3)
+                                
+                                Text(parentPresent ? "Parent/Guardian Detected!" : "No Parent/Guardian Found")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .multilineTextAlignment(.center)
+                            }
+                            
+                            if parentPresent {
+                                VStack(spacing: 4) {
+                                    Text("🎉 Great! You can now go on a walk! 🐕")
+                                        .font(.subheadline)
+                                        .foregroundColor(.green)
+                                        .fontWeight(.semibold)
+                                    
+                                    Text("Your parent or guardian has been verified. Stay safe and have fun!")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                        .multilineTextAlignment(.center)
+                                }
+                            } else {
+                                VStack(spacing: 4) {
+                                    Text("Please take a photo with your parent or guardian")
+                                        .font(.subheadline)
+                                        .foregroundColor(.orange)
+                                        .fontWeight(.medium)
+                                    
+                                    Text("Age detected: \(viewModel.predictionResult)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(parentPresent ? Color.green.opacity(0.1) : Color.orange.opacity(0.1))
+                        )
                     }
                     
                     // Error Message
                     if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                        VStack(spacing: 4) {
+                            HStack {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundColor(.red)
+                                Text("Oops! Something went wrong")
+                                    .fontWeight(.medium)
+                            }
+                            
+                            Text(errorMessage)
+                                .font(.caption)
+                                .multilineTextAlignment(.center)
+                        }
+                        .foregroundColor(.red)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.red.opacity(0.1))
+                        )
                     }
                 }
                 
@@ -65,43 +200,98 @@ struct CameraView: View {
                 
                 // Action Buttons
                 VStack(spacing: 12) {
+                    // Primary Camera Button
                     Button(action: {
                         viewModel.openCamera()
                     }) {
-                        HStack {
-                            Image(systemName: "camera")
-                            Text("Open Camera")
+                        HStack(spacing: 8) {
+                            Image(systemName: "camera.fill")
+                                .font(.title3)
+                            Text("Choose Photo")
+                                .fontWeight(.semibold)
                         }
-                        .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(viewModel.canPredict ? Color.blue : Color.gray)
-                        .cornerRadius(12)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: viewModel.canPredict ? [Color.blue, Color.blue.opacity(0.8)] : [Color.gray, Color.gray.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(16)
+                        .shadow(color: viewModel.canPredict ? .blue.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
                     }
                     .disabled(!viewModel.canPredict)
+                    .scaleEffect(viewModel.canPredict ? 1.0 : 0.95)
+                    .animation(.easeInOut(duration: 0.2), value: viewModel.canPredict)
                     
-                    if viewModel.capturedImage != nil {
-                        Button(action: {
-                            viewModel.resetPrediction()
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.clockwise")
-                                Text("Reset")
+                    // Secondary Actions
+                    HStack(spacing: 12) {
+                        if viewModel.capturedImage != nil {
+                            Button(action: {
+                                viewModel.resetPrediction()
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Try Again")
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(12)
                             }
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(12)
+                        }
+                        
+                        // Show "Start Walking" button if parent is detected
+                        if !viewModel.predictionResult.isEmpty && viewModel.predictionResult != "No prediction yet" && viewModel.isParentPresent {
+                            Button(action: {
+                                dismiss()
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "figure.walk")
+                                    Text("Start Walking!")
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.green, Color.green.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(12)
+                                .shadow(color: .green.opacity(0.3), radius: 4, x: 0, y: 2)
+                            }
+                        } else {
+                            Button(action: {
+                                dismiss()
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "xmark")
+                                    Text("Cancel")
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.secondary.opacity(0.1))
+                                .cornerRadius(12)
+                            }
                         }
                     }
                 }
             }
             .padding()
-            .navigationTitle("Age Prediction")
-            .navigationBarTitleDisplayMode(.inline)
         }
         .sheet(isPresented: $viewModel.showCamera) {
             ImagePicker(image: Binding(
@@ -113,15 +303,15 @@ struct CameraView: View {
                 }
             ))
         }
-        .alert("Model Loading", isPresented: .constant(viewModel.isLoading && !viewModel.hasValidModel)) {
+        .alert("Loading AI Model", isPresented: .constant(viewModel.isLoading && !viewModel.hasValidModel)) {
             // Alert will show while loading
         } message: {
-            Text("Loading age prediction model...")
+            Text("Getting ready to check for parents... Please wait! 🤖")
         }
     }
 }
 
-// MARK: - Image Picker
+// MARK: - Enhanced Image Picker
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     @Environment(\.dismiss) private var dismiss
@@ -129,6 +319,8 @@ struct ImagePicker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
+        
+        // Always use photo library for simulator compatibility
         picker.sourceType = .photoLibrary
         picker.allowsEditing = true
         return picker
@@ -163,5 +355,5 @@ struct ImagePicker: UIViewControllerRepresentable {
 }
 
 #Preview {
-    CameraView()
+//    CameraView()
 }

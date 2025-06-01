@@ -13,6 +13,7 @@ import FirebaseAuth
 struct MapView: View {
     @EnvironmentObject var viewModel: LocationViewModel
     @EnvironmentObject var walkViewModel: WalkingViewModel
+    @EnvironmentObject var agePredictionViewModel: AgePredictionViewModel
     
     @State private var userLocationWrapper: LocationModel? = nil
     @State private var cameraPosition: MapCameraPosition = .region(
@@ -25,6 +26,8 @@ struct MapView: View {
     @State private var isZoomedIn: Bool = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @State private var showingParentCheckAlert = false
+    @State private var navigateToCamera: Bool = false
 
     var body: some View {
         NavigationStack{
@@ -81,27 +84,60 @@ struct MapView: View {
                             
                             viewModel.stopWalking()
                             
-                            // Add longer delay to ensure all calculations are complete
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                 let walk = viewModel.saveWalkModel()
                                 print("About to save walk: Distance=\(walk.distance), Duration=\(walk.duration), UserID=\(walk.userId)")
                                 walkViewModel.createWalking(walk: walk)
                             }
                         } else {
-                            // Check if user is logged in before starting
                             guard Auth.auth().currentUser != nil else {
                                 alertMessage = "Please log in to track your walks."
                                 showingAlert = true
                                 return
                             }
+                            
+                            // Check if parent verification is required
+                            if !agePredictionViewModel.isParentPresent {
+                                showingParentCheckAlert = true
+                                return
+                            }
+                            
+                            // If parent is verified, start walking
                             viewModel.startWalking()
                         }
                     }
                     .padding()
-                    .background(viewModel.isWalking ? Color.red : Color.orange)
+                    .background(getWalkingButtonColor())
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     .disabled(viewModel.authorizationStatus == .denied || viewModel.authorizationStatus == .restricted)
+                    .overlay(
+                        // Add a subtle glow effect when parent is verified
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(agePredictionViewModel.isParentPresent && !viewModel.isWalking ? Color.green : Color.clear, lineWidth: 2)
+                            .opacity(agePredictionViewModel.isParentPresent && !viewModel.isWalking ? 0.8 : 0)
+                            .animation(.easeInOut(duration: 0.3), value: agePredictionViewModel.isParentPresent)
+                    )
+                }
+                
+                // Parent verification status indicator
+                if agePredictionViewModel.predictionResult != "No prediction yet" {
+                    HStack {
+                        Image(systemName: agePredictionViewModel.isParentPresent ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                            .foregroundColor(agePredictionViewModel.isParentPresent ? .green : .orange)
+                        
+                        Text(agePredictionViewModel.isParentPresent ? "Parent verified - Ready to walk!" : "Parent verification required")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(agePredictionViewModel.isParentPresent ? .green : .orange)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(agePredictionViewModel.isParentPresent ? Color.green.opacity(0.1) : Color.orange.opacity(0.1))
+                    )
+                    .animation(.easeInOut(duration: 0.3), value: agePredictionViewModel.isParentPresent)
                 }
                 
                 VStack(spacing: 10) {
@@ -145,29 +181,21 @@ struct MapView: View {
                         .cornerRadius(8)
                     }
                     
-                    // Debug info (remove this in production)
-                    if Auth.auth().currentUser != nil {
-                        Text("User ID: \(Auth.auth().currentUser?.uid ?? "No ID")")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    } else {
-                        Text("Not logged in")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
                 }
-                
-                NavigationLink("Open Camera") {
-                    CameraView()
-                }
-                .padding(.top, 10)
-                .buttonStyle(.borderedProminent)
             }
             .padding()
             .alert("Authentication Required", isPresented: $showingAlert) {
                 Button("OK") { }
             } message: {
                 Text(alertMessage)
+            }
+            .alert("Parent Verification Required", isPresented: $showingParentCheckAlert) {
+                Button("Verify Now") {
+                    navigateToCamera = true
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("For your safety, please verify that a parent or guardian is with you before starting your walk.")
             }
             .onReceive(viewModel.$userLocation) { location in
                 if let loc = location {
@@ -183,9 +211,23 @@ struct MapView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $navigateToCamera) {
+                CameraView(viewModel: agePredictionViewModel)
+            }
         }
+        
         .onAppear {
             viewModel.requestLocation()
+        }
+    }
+    
+    private func getWalkingButtonColor() -> Color {
+        if viewModel.isWalking {
+            return .red
+        } else if agePredictionViewModel.isParentPresent {
+            return .green // Green when parent is verified and ready to walk
+        } else {
+            return .orange // Orange when parent verification is needed
         }
     }
 
