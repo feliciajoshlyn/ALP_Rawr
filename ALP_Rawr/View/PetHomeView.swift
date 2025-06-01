@@ -11,6 +11,7 @@ import SpriteKit
 struct PetHomeView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var petHomeViewModel: PetHomeViewModel
+    @EnvironmentObject var diaryViewModel: DiaryViewModel
     
     let screenWidth = UIScreen.main.bounds.width
     let screenHeight = UIScreen.main.bounds.height
@@ -173,6 +174,41 @@ struct PetHomeView: View {
                 petHomeViewModel.checkCurrEmotion()
             }
         }
+        .onChange(of: petHomeViewModel.pet.currMood) {_, newMood in
+            diaryViewModel.addEntry(DiaryEntry(id: UUID().uuidString, data: ["userId": authViewModel.myUser.uid, "title": petHomeViewModel.pet.currMood, "text": "\(petHomeViewModel.pet.name) is now \(petHomeViewModel.pet.currMood)", "createdAt": Date()]))
+        }
+//        .onChange(of: petHomeViewModel.pet.bond) {_, newMood in
+//            diaryViewModel.addEntry(DiaryEntry(id: UUID().uuidString, data: ["userId": authViewModel.myUser.uid, "title": petHomeViewModel.pet.currMood, "text": "\(authViewModel.myUser.displayName)'s bond with \(petHomeViewModel.pet.name) is now \(petHomeViewModel.pet.currMood)", "createdAt": Date()]))
+//        }
+        .onChange(of: petHomeViewModel.pet.hunger) { _, newHunger in
+            let petName = petHomeViewModel.pet.name
+            let userId = authViewModel.myUser.uid
+
+            var text: String = ""
+            var title: String = ""
+
+            if newHunger == 0 {
+                text = "\(petName) is starving :("
+                title = "😿"
+            } else if newHunger == 100 {
+                text = "\(petName) is well fed!"
+                title = "😄"
+            } else {
+                return
+            }
+
+            let entry = DiaryEntry(
+                id: UUID().uuidString,
+                data: [
+                    "userId": userId,
+                    "title": title,
+                    "text": text,
+                    "createdAt": Date()
+                ]
+            )
+
+            diaryViewModel.addEntry(entry)
+        }
     }
 }
 
@@ -181,4 +217,5 @@ struct PetHomeView: View {
     PetHomeView()
         .environmentObject(AuthViewModel())
         .environmentObject(PetHomeViewModel(petService: PetService()))
+        .environmentObject(DiaryViewModel())
 }

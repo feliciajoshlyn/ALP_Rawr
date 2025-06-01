@@ -48,6 +48,7 @@ class DiaryService{
     func addDiaryEntry(_entry : DiaryEntry, completion: @escaping (Bool) -> Void) {
         let data: [String: Any] = [
             "userId": _entry.userId,
+            "title": _entry.title,
             "text": _entry.text,
             "createdAt": _entry.createdAt.timeIntervalSince1970
         ]
@@ -62,6 +63,7 @@ class DiaryService{
         }
     }
     
+    //for reactions not used for now
     func addOrUpdateReaction(toEntryId entryId: String, reaction: Reaction, completion: @escaping(Bool) -> Void) {
         guard !entryId.isEmpty else {
             print("Invalid entryId: empty string")

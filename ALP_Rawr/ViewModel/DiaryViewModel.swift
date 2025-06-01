@@ -6,17 +6,27 @@
 //
 
 import Foundation
+import WatchConnectivity
 
-class DiaryViewModel : ObservableObject{
+class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
+    var session: WCSession
+    
     @Published var diary: [DiaryEntry] = []
     @Published var friends: [MyUser] = []
     @Published var searchedFriend: MyUser? = nil
     @Published var userReactions: [String: Reaction] = [:]
-
-
+    
+    
     @Published var isLoading = false
     
     private let diaryService = DiaryService.shared
+    
+    init(session: WCSession = .default) {
+        self.session = session
+        super.init()
+        session.delegate = self
+        session.activate()
+    }
     
     func loadEntries(for userId: String) {
         isLoading = true
@@ -55,15 +65,15 @@ class DiaryViewModel : ObservableObject{
         }
     }
     
-//    func loadReactions(for entryId: String) {
-//        diaryService.fetchReactions(toEntryId: entryId) { reactions in
-//            DispatchQueue.main.async {
-//                if let index = self.diary.firstIndex(where: { $0.id == entryId }) {
-//                    self.diary[index].reactions = reactions
-//                }
-//            }
-//        }
-//    }
+    //    func loadReactions(for entryId: String) {
+    //        diaryService.fetchReactions(toEntryId: entryId) { reactions in
+    //            DispatchQueue.main.async {
+    //                if let index = self.diary.firstIndex(where: { $0.id == entryId }) {
+    //                    self.diary[index].reactions = reactions
+    //                }
+    //            }
+    //        }
+    //    }
     
     func loadReactions(for entryId: String) {
         diaryService.fetchReactions(toEntryId: entryId) { reactions in
@@ -76,8 +86,8 @@ class DiaryViewModel : ObservableObject{
             }
         }
     }
-
-
+    
+    
     func addReaction(to entryId: String, _ reaction: Reaction) {
         diaryService.addOrUpdateReaction(toEntryId: entryId, reaction: reaction) {success in
             if success {
@@ -88,15 +98,15 @@ class DiaryViewModel : ObservableObject{
         }
     }
     
-//    func addFriend(from currentUserId: String, to friendId: String) {
-//        diaryService.addFriend(currentUserId: currentUserId, friendId: friendId) {success in
-//            if success {
-//                print( "Successfully added friend")
-//            } else {
-//                print( "Failed to add friend")
-//            }
-//        }
-//    }
+    //    func addFriend(from currentUserId: String, to friendId: String) {
+    //        diaryService.addFriend(currentUserId: currentUserId, friendId: friendId) {success in
+    //            if success {
+    //                print( "Successfully added friend")
+    //            } else {
+    //                print( "Failed to add friend")
+    //            }
+    //        }
+    //    }
     func searchFriend(by uid: String) {
         diaryService.searchUser(byUID: uid) { user in
             DispatchQueue.main.async {
@@ -104,8 +114,8 @@ class DiaryViewModel : ObservableObject{
             }
         }
     }
-
-
+    
+    
     func addFriendButtonAction(currentUserId: String, friendId: String) {
         diaryService.addMutualFriend(currentUserId: currentUserId, friendId: friendId) { success in
             DispatchQueue.main.async {
@@ -138,7 +148,7 @@ class DiaryViewModel : ObservableObject{
             }
         }
     }
-
+    
     
     func addMutualFriend(from currentUserId: String, to friendId: String) {
         diaryService.addMutualFriend(currentUserId: currentUserId, friendId: friendId) { success in
@@ -150,12 +160,90 @@ class DiaryViewModel : ObservableObject{
         }
     }
     
-//    func showFriends(for userId: String){
-//        diaryService.fetchFriends(userId: userId) { friends in
-//            DispatchQueue.main.async {
-//                self.friends = friends
-//            }
-//        }
-//    }
     
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {}
+    
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+    
+    func sessionDidDeactivate(_ session: WCSession) {}
+    
+    func sendDiarytoWatch() {
+        //make sure bsa connect ke watch dlu
+        guard WCSession.default.isReachable else {
+            print("Watch is not reachable")
+            return
+        }
+        
+        let diaryPayLoad = diary.map { entry in
+            return [
+                "id": entry.id,
+                "userId": entry.userId,
+                "title": entry.title,
+                "text": entry.text,
+                "createdAt": entry.createdAt.timeIntervalSince1970
+            ]
+        }
+        
+        let dataToSend: [String: Any] = ["diaryEntries": diaryPayLoad]
+        
+        self.session.sendMessage(dataToSend, replyHandler: { response in
+            print("Watch replied: \(response)")
+        }, errorHandler: { error in
+            print("failed to send message : \(error)")
+        })
+    }
+    
+    func sendFriendstoWatch() {
+        guard WCSession.default.isReachable else {
+            print("Watch is not reachable")
+            return
+        }
+        
+        let friendPayLoad = friends.map { friend in
+            return [
+                "uid": friend.id,
+                "username": friend.username,
+                ]
+            }
+        let dataToSend: [String: Any] = ["friends": friendPayLoad]
+        
+        self.session.sendMessage(dataToSend, replyHandler: { response in
+            print("Watch replied: \(response)")
+        }, errorHandler: { error in
+            print("failed to send message : \(error)")
+        })
+    }
+    
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
+        if let action = message["action"] as? String {
+            switch action {
+            case "searchFriend":
+                if let uid = message["uid"] as? String {
+                    diaryService.searchUser(byUID: uid) { user in
+                        if let user = user {
+                            replyHandler([
+                                "status": "success",
+                                "username": user.username
+                            ])
+                        } else {
+                            replyHandler(["status": "not_found"])
+                        }
+                    }
+                }
+                
+            case "addFriend":
+                if let userId = message["userId"] as? String,
+                   let friendId = message["friendId"] as? String {
+                    diaryService.addMutualFriend(currentUserId: userId, friendId: friendId) { success in
+                        replyHandler(["status": success ? "success" : "failed"])
+                    }
+                }
+                
+            default:
+                replyHandler(["status": "unknown_action"])
+            }
+        } else {
+            replyHandler(["status": "no_action"])
+        }
+    }
 }

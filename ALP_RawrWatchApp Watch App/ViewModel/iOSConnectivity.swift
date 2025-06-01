@@ -10,8 +10,16 @@ import WatchConnectivity
 
 //Handle connectivity di watchOSnya
 public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
-    var session: WCSession
+//    public func sessionDidBecomeInactive(_ session: WCSession) {
+//        
+//    }
+//    
+//    public func sessionDidDeactivate(_ session: WCSession) {
+//        
+//    }
     
+    var session: WCSession
+        
     init(session: WCSession = .default){
         self.session = session
         super.init()
@@ -22,7 +30,6 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
     public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
         
     }
-    
     func sendPetToiOS(){
         if session.isReachable {
             let dataToSend: [String : Any] = [

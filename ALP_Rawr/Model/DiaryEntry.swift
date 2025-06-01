@@ -10,6 +10,7 @@ import Foundation
 struct DiaryEntry: Identifiable {
     let id: String
     let userId: String
+    let title: String
     let text: String
     let createdAt: Date
     
@@ -18,6 +19,7 @@ struct DiaryEntry: Identifiable {
     init(id: String, data: [String: Any]) {
         self.id = id
         self.userId = data["userId"] as? String ?? ""
+        self.title = data["title"] as? String ?? ""
         self.text = data["text"] as? String ?? ""
         
         if let timestamp = data["createdAt"] as? Date {
