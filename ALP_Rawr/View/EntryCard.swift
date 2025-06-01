@@ -103,11 +103,11 @@ struct EntryCard: View {
                 )
         )
         .onAppear {
-            // Initialize likes count
-            likesCount = diaryEntry.likesCount
-            
-            // Load the user's reaction for this entry
-            diaryViewModel.loadReaction(for: diaryEntry.id, userId: authViewModel.user?.uid ?? "")
+//            // Initialize likes count
+//            likesCount = diaryEntry.likesCount
+//            
+//            // Load the user's reaction for this entry
+//            diaryViewModel.loadReaction(for: diaryEntry.id, userId: authViewModel.user?.uid ?? "")
             
             // Fetch username
             DiaryService.shared.searchUser(byUID: diaryEntry.userId) { user in

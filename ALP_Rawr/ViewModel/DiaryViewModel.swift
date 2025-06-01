@@ -9,6 +9,7 @@ import Foundation
 import WatchConnectivity
 
 class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
+    private let diaryService : DiaryServiceProtocol
     var session: WCSession
     
     @Published var diary: [DiaryEntry] = []
@@ -19,10 +20,11 @@ class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
     
     @Published var isLoading = false
     
-    private let diaryService = DiaryService.shared
+//    private let diaryService = DiaryService.shared
     
-    init(session: WCSession = .default) {
+    init(session: WCSession = .default, diaryService :DiaryServiceProtocol = DiaryService.shared) {
         self.session = session
+        self.diaryService = diaryService
         super.init()
         session.delegate = self
         session.activate()
@@ -42,7 +44,7 @@ class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
     }
     
     func addEntry(_ entry: DiaryEntry) {
-        diaryService.addDiaryEntry(_entry: entry) { success in
+        diaryService.addDiaryEntry(entry: entry) { success in
             DispatchQueue.main.async {
                 if success {
                     print("Diary Entry added Successfully")
@@ -53,17 +55,17 @@ class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
         }
     }
     
-    func loadReaction(for entryId: String, userId : String) {
-        diaryService.fetchReaction(for: entryId, userId: userId) { reaction in
-            DispatchQueue.main.async {
-                if let reaction = reaction {
-                    self.userReactions[entryId] = reaction
-                } else {
-                    self.userReactions[entryId] = nil
-                }
-            }
-        }
-    }
+//    func loadReaction(for entryId: String, userId : String) {
+//        diaryService.fetchReaction(for: entryId, userId: userId) { reaction in
+//            DispatchQueue.main.async {
+//                if let reaction = reaction {
+//                    self.userReactions[entryId] = reaction
+//                } else {
+//                    self.userReactions[entryId] = nil
+//                }
+//            }
+//        }
+//    }
     
     //    func loadReactions(for entryId: String) {
     //        diaryService.fetchReactions(toEntryId: entryId) { reactions in
@@ -75,28 +77,28 @@ class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
     //        }
     //    }
     
-    func loadReactions(for entryId: String) {
-        diaryService.fetchReactions(toEntryId: entryId) { reactions in
-            DispatchQueue.main.async {
-                if let index = self.diary.firstIndex(where: { $0.id == entryId }) {
-                    var updatedEntry = self.diary[index]
-                    updatedEntry.reactions = reactions
-                    self.diary[index] = updatedEntry
-                }
-            }
-        }
-    }
+//    func loadReactions(for entryId: String) {
+//        diaryService.fetchReactions(toEntryId: entryId) { reactions in
+//            DispatchQueue.main.async {
+//                if let index = self.diary.firstIndex(where: { $0.id == entryId }) {
+//                    var updatedEntry = self.diary[index]
+//                    updatedEntry.reactions = reactions
+//                    self.diary[index] = updatedEntry
+//                }
+//            }
+//        }
+//    }
     
     
-    func addReaction(to entryId: String, _ reaction: Reaction) {
-        diaryService.addOrUpdateReaction(toEntryId: entryId, reaction: reaction) {success in
-            if success {
-                print("Successfully added reaction")
-            } else {
-                print("Failed to add reaction")
-            }
-        }
-    }
+//    func addReaction(to entryId: String, _ reaction: Reaction) {
+//        diaryService.addOrUpdateReaction(toEntryId: entryId, reaction: reaction) {success in
+//            if success {
+//                print("Successfully added reaction")
+//            } else {
+//                print("Failed to add reaction")
+//            }
+//        }
+//    }
     
     //    func addFriend(from currentUserId: String, to friendId: String) {
     //        diaryService.addFriend(currentUserId: currentUserId, friendId: friendId) {success in

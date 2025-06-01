@@ -8,7 +8,8 @@
 import Foundation
 import FirebaseFirestore
 
-class DiaryService{
+class DiaryService : DiaryServiceProtocol{
+    
     static let shared = DiaryService()
     
     private let db = Firestore.firestore()
@@ -45,12 +46,12 @@ class DiaryService{
             }
     }
     
-    func addDiaryEntry(_entry : DiaryEntry, completion: @escaping (Bool) -> Void) {
+    func addDiaryEntry(entry : DiaryEntry, completion: @escaping (Bool) -> Void) {
         let data: [String: Any] = [
-            "userId": _entry.userId,
-            "title": _entry.title,
-            "text": _entry.text,
-            "createdAt": _entry.createdAt.timeIntervalSince1970
+            "userId": entry.userId,
+            "title": entry.title,
+            "text": entry.text,
+            "createdAt": entry.createdAt.timeIntervalSince1970
         ]
         
         db.collection("diaryEntries").addDocument(data: data) { error in
