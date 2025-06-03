@@ -46,6 +46,7 @@ struct ContentView: View {
             }
             .navigationDestination(isPresented: $showWalk){
                 WatchWalkingView(connectivity: connectivity)
+                    .environmentObject(connectivityManager)
             }
         }
     }
