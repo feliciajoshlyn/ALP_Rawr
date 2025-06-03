@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct ALP_RawrWatchApp_Watch_AppApp: App {
+    @StateObject var watchConnectivityManager = WatchConnectivityManager.shared
+    @StateObject var connectivityManager = iOSConnectivity()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            WatchWalkingView(connectivity: connectivityManager)
+                .environmentObject(watchConnectivityManager)
         }
     }
 }
