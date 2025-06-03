@@ -9,7 +9,7 @@ import SwiftUI
 import WatchConnectivity
 
 struct DiaryWatchView: View {
-    @StateObject var diaryWatchViewModel: DiaryWatchViewModel
+    @StateObject var diaryWatchViewModel: iOSConnectivity
     
     
     var body: some View {
@@ -47,7 +47,7 @@ struct DiaryWatchView: View {
                         }
                     }
                 }
-                NavigationLink("See Friends", destination: FriendWatchView(diaryWatchViewModel: DiaryWatchViewModel()))
+                NavigationLink("See Friends", destination: FriendWatchView(diaryWatchViewModel: iOSConnectivity()))
                 
             }
             .navigationTitle("My Diary")
@@ -66,5 +66,5 @@ struct DiaryWatchView: View {
 }
 
 #Preview {
-    DiaryWatchView(diaryWatchViewModel: DiaryWatchViewModel())
+    DiaryWatchView(diaryWatchViewModel: iOSConnectivity())
 }

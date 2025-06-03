@@ -115,7 +115,7 @@ func injectViewModels(
     self.petHomeVM = petHomeVM
     self.diaryVM = diaryVM // <-- set it
 
-    setupViewModelObservers()
+//    setupViewModelObservers()
 }
 #endif
     

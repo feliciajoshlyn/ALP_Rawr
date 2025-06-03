@@ -13,7 +13,7 @@ struct AddFriendWatchView: View {
     @State var searchButtonIsDisabled = true
     @State var friend : [String : Any] = [:]
     
-    @StateObject var diaryWatchViewModel: DiaryWatchViewModel
+    @StateObject var diaryWatchViewModel: iOSConnectivity
     
     var body: some View {
         NavigationStack{
@@ -55,5 +55,5 @@ struct AddFriendWatchView: View {
 }
 
 #Preview {
-    AddFriendWatchView(diaryWatchViewModel: DiaryWatchViewModel())
+    AddFriendWatchView(diaryWatchViewModel: iOSConnectivity())
 }

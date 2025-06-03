@@ -9,7 +9,7 @@ import SwiftUI
 import WatchConnectivity
 
 struct FriendWatchView: View {
-    @StateObject var diaryWatchViewModel: DiaryWatchViewModel
+    @StateObject var diaryWatchViewModel: iOSConnectivity
 
     var body: some View {
         NavigationStack{
@@ -48,5 +48,5 @@ struct FriendWatchView: View {
 }
 
 #Preview {
-    FriendWatchView(diaryWatchViewModel: DiaryWatchViewModel())
+    FriendWatchView(diaryWatchViewModel: iOSConnectivity())
 }
