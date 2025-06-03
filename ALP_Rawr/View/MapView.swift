@@ -1,4 +1,3 @@
-//
 //  MapView.swift
 //  ALP_Rawr
 //
@@ -28,6 +27,7 @@ struct MapView: View {
     @State private var alertMessage = ""
     @State private var showingParentCheckAlert = false
     @State private var navigateToCamera: Bool = false
+    @State private var wasWalking = false // Track previous walking state
 
     var body: some View {
         NavigationStack{
@@ -75,35 +75,9 @@ struct MapView: View {
                     
                     Button(viewModel.isWalking ? "Stop Walking" : "Start Walking") {
                         if viewModel.isWalking {
-                            // Check if user is logged in before stopping
-                            guard Auth.auth().currentUser != nil else {
-                                alertMessage = "Please log in to save your walk data."
-                                showingAlert = true
-                                return
-                            }
-                            
-                            viewModel.stopWalking()
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                let walk = viewModel.saveWalkModel()
-                                print("About to save walk: Distance=\(walk.distance), Duration=\(walk.duration), UserID=\(walk.userId)")
-                                walkViewModel.createWalking(walk: walk)
-                            }
+                            handleStopWalking()
                         } else {
-                            guard Auth.auth().currentUser != nil else {
-                                alertMessage = "Please log in to track your walks."
-                                showingAlert = true
-                                return
-                            }
-                            
-                            // Check if parent verification is required
-                            if !agePredictionViewModel.isParentPresent {
-                                showingParentCheckAlert = true
-                                return
-                            }
-                            
-                            // If parent is verified, start walking
-                            viewModel.startWalking()
+                            handleStartWalking()
                         }
                     }
                     .padding()
@@ -180,7 +154,6 @@ struct MapView: View {
                         .background(Color.orange.opacity(0.1))
                         .cornerRadius(8)
                     }
-                    
                 }
             }
             .padding()
@@ -211,13 +184,56 @@ struct MapView: View {
                     }
                 }
             }
+            .onChange(of: viewModel.isWalking) { oldValue, newValue in
+                if wasWalking && !newValue {
+                    print("Walking stopped detected - saving walk data")
+                    saveWalkData()
+                }
+                wasWalking = newValue
+            }
             .navigationDestination(isPresented: $navigateToCamera) {
                 CameraView(viewModel: agePredictionViewModel)
             }
         }
-        
         .onAppear {
             viewModel.requestLocation()
+            WatchConnectivityManager.shared.locationVM = viewModel
+            wasWalking = viewModel.isWalking
+        }
+    }
+    
+    private func handleStartWalking() {
+        guard Auth.auth().currentUser != nil else {
+            alertMessage = "Please log in to track your walks."
+            showingAlert = true
+            return
+        }
+        
+        // Check if parent verification is required
+        if !agePredictionViewModel.isParentPresent {
+            showingParentCheckAlert = true
+            return
+        }
+        
+        // If parent is verified, start walking
+        viewModel.startWalking()
+    }
+    
+    private func handleStopWalking() {
+        guard Auth.auth().currentUser != nil else {
+            alertMessage = "Please log in to save your walk data."
+            showingAlert = true
+            return
+        }
+        
+        viewModel.stopWalking()
+    }
+    
+    private func saveWalkData() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            let walk = viewModel.saveWalkModel()
+            print("About to save walk: Distance=\(walk.distance), Duration=\(walk.duration), UserID=\(walk.userId)")
+            walkViewModel.createWalking(walk: walk)
         }
     }
     
@@ -225,7 +241,7 @@ struct MapView: View {
         if viewModel.isWalking {
             return .red
         } else if agePredictionViewModel.isParentPresent {
-            return .green // Green when parent is verified and ready to walk
+            return .green 
         } else {
             return .orange // Orange when parent verification is needed
         }

@@ -150,9 +150,12 @@ class AgePredictionViewModel: ObservableObject {
     }
     
     var isParentPresent: Bool {
-        return predictionResult == "20-29" || predictionResult == "30-39" ||
+        let result = predictionResult == "20-29" || predictionResult == "30-39" ||
                predictionResult == "40-49" || predictionResult == "50-59" ||
-               predictionResult == "60-69" || predictionResult == "70-100"
+               predictionResult == "60-69" || predictionResult == "more than 70"
+        
+        print("DEBUG - predictionResult: '\(predictionResult)', isParentPresent: \(result)")
+        return result
     }
     
     func resetPrediction() {

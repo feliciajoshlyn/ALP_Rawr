@@ -1,4 +1,3 @@
-//
 //  LocationViewModel.swift
 //  ALP_Rawr
 //
@@ -23,6 +22,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var walkingDuration: TimeInterval = 0.0
     
     private var walkTimer: Timer?
+    private var durationTimer: Timer? 
     @Published var startTime: Date?
     @Published var endTime: Date?
     @Published var walkStartTime: Date?
@@ -50,35 +50,61 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func updatePetLastWalkedById(id: String) {
-            let dbRef = Database.database().reference().child("pets")
+        let dbRef = Database.database().reference().child("pets")
+        
+        dbRef.observeSingleEvent(of: .value) { snapshot in
+            guard let allPets = snapshot.value as? [String: [String: Any]] else {
+                print("Failed to cast pet data or no pets found")
+                return
+            }
             
-            dbRef.observeSingleEvent(of: .value) { snapshot in
-                guard let allPets = snapshot.value as? [String: [String: Any]] else {
-                    print("Failed to cast pet data")
-                    return
-                }
-                
-                for (petId, petData) in allPets {
-                    if let userId = petData["userId"] as? String, userId == id {
-                        let lastWalkedString = ISO8601DateFormatter().string(from: self.endTime ?? Date())
-                        dbRef.child(petId).child("lastWalked").setValue(lastWalkedString) { error, _ in
-                            if let error = error {
-                                print("Failed to update lastWalked: \(error.localizedDescription)")
-                            } else {
-                                print("Successfully updated lastWalked for \(userId)")
-                            }
+            var petFound = false
+            for (petId, petData) in allPets {
+                if let userId = petData["userId"] as? String, userId == id {
+                    petFound = true
+                    let lastWalkedString = ISO8601DateFormatter().string(from: self.endTime ?? Date())
+                    dbRef.child(petId).child("lastWalked").setValue(lastWalkedString) { error, _ in
+                        if let error = error {
+                            print("Failed to update lastWalked: \(error.localizedDescription)")
+                        } else {
+                            print("Successfully updated lastWalked for pet belonging to user: \(userId)")
                         }
-                        return
                     }
+                    break
                 }
-                
-                print("Pet with id: \(id) not found.")
+            }
+            
+            if !petFound {
+                print("Pet with userId: \(id) not found. Creating a default pet entry.")
+                // Optionally create a default pet entry or handle this case
+                self.createDefaultPetIfNeeded(userId: id)
             }
         }
-
+    }
     
+    private func createDefaultPetIfNeeded(userId: String) {
+        let dbRef = Database.database().reference().child("pets")
+        let newPetId = dbRef.childByAutoId().key ?? UUID().uuidString
+        
+        let defaultPetData: [String: Any] = [
+            "userId": userId,
+            "name": "Default Pet",
+            "lastWalked": ISO8601DateFormatter().string(from: Date()),
+            "createdAt": ISO8601DateFormatter().string(from: Date())
+        ]
+        
+        dbRef.child(newPetId).setValue(defaultPetData) { error, _ in
+            if let error = error {
+                print("Failed to create default pet: \(error.localizedDescription)")
+            } else {
+                print("Created default pet for user: \(userId)")
+            }
+        }
+    }
+
     func startWalking() {
-        // Reset all values
+        print("🚶 Starting walking session")
+        
         walkingPath = []
         walkingDistance = 0
         walkingDuration = 0
@@ -93,6 +119,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         print("Starting walk at: \(currentTime)")
 
+        // Start simulation timer
         walkTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             guard self.simulatedIndex < self.simulatedPath.count else {
                 self.stopWalking()
@@ -114,19 +141,26 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             self.walkingPath.append(newCoord)
             self.lastLocation = newLocation
             
-            // Update duration
+            self.simulatedIndex += 1
+        }
+        
+        // Start separate duration timer
+        durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             if let walkStart = self.walkStartTime {
                 self.walkingDuration = Date().timeIntervalSince(walkStart)
-                print("Duration: \(self.walkingDuration)")
             }
-            
-            self.simulatedIndex += 1
         }
     }
     
     func stopWalking() {
+        print("🛑 Stopping walking session")
+        
+        // Invalidate both timers
         walkTimer?.invalidate()
         walkTimer = nil
+        
+        durationTimer?.invalidate()
+        durationTimer = nil
 
         // Handle case where user stops before simulation completes
         if simulatedIndex < simulatedPath.count {
@@ -154,10 +188,13 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         isWalking = false
         
         print("Walk stopped - Distance: \(walkingDistance), Duration: \(walkingDuration)")
-        self.updatePetLastWalkedById(id: Auth.auth().currentUser?.uid ?? "")
+        
+        // Update pet's last walked time
+        if let userId = Auth.auth().currentUser?.uid {
+            self.updatePetLastWalkedById(id: userId)
+        }
     }
 
-    // Save to walk model
     func saveWalkModel() -> WalkingModel {
         // Check if user is logged in
         guard let userId = Auth.auth().currentUser?.uid else {
@@ -166,6 +203,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
         
         print("Saving walk for user: \(userId)")
+        print("Walk data - Distance: \(walkingDistance), Duration: \(walkingDuration)")
         
         let duration = walkingDuration
         let distance = walkingDistance
@@ -179,7 +217,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             duration: duration,
             distance: distance,
             averageSpeed: avgSpeed,
-            notes: nil
+            notes: ""
         )
         
         return walkModel
@@ -209,10 +247,6 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 }
             }
             lastLocation = location
-            
-            if let startTime = walkStartTime {
-                walkingDuration = Date().timeIntervalSince(startTime)
-            }
         }
     }
     
@@ -226,6 +260,4 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             manager.requestLocation()
         }
     }
-    
-    
 }

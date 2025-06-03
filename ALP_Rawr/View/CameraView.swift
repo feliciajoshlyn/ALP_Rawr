@@ -10,13 +10,17 @@ import SwiftUI
 struct CameraView: View {
     @ObservedObject var viewModel: AgePredictionViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var navigateToMapView = false
+    
+    @ObservedObject private var watchConnectivity = WatchConnectivityManager.shared
     
     init(viewModel: AgePredictionViewModel) {
         self.viewModel = viewModel
+        WatchConnectivityManager.shared.agePredictionVM = viewModel
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 // Header Section
                 VStack(spacing: 8) {
@@ -143,7 +147,7 @@ struct CameraView: View {
                             
                             if parentPresent {
                                 VStack(spacing: 4) {
-                                    Text("🎉 Great! You can now go on a walk! 🐕")
+                                    Text("Great! You can now go on a walk!")
                                         .font(.subheadline)
                                         .foregroundColor(.green)
                                         .fontWeight(.semibold)
@@ -198,7 +202,6 @@ struct CameraView: View {
                 
                 Spacer()
                 
-                // Action Buttons
                 VStack(spacing: 12) {
                     // Primary Camera Button
                     Button(action: {
@@ -227,7 +230,6 @@ struct CameraView: View {
                     .scaleEffect(viewModel.canPredict ? 1.0 : 0.95)
                     .animation(.easeInOut(duration: 0.2), value: viewModel.canPredict)
                     
-                    // Secondary Actions
                     HStack(spacing: 12) {
                         if viewModel.capturedImage != nil {
                             Button(action: {
@@ -247,10 +249,10 @@ struct CameraView: View {
                             }
                         }
                         
-                        // Show "Start Walking" button if parent is detected
                         if !viewModel.predictionResult.isEmpty && viewModel.predictionResult != "No prediction yet" && viewModel.isParentPresent {
                             Button(action: {
-                                dismiss()
+                                watchConnectivity.sendStatusToWatch()
+                                navigateToMapView = true
                             }) {
                                 HStack(spacing: 6) {
                                     Image(systemName: "figure.walk")
@@ -290,6 +292,9 @@ struct CameraView: View {
                         }
                     }
                 }
+                .navigationDestination(isPresented: $navigateToMapView) {
+                    MapView()
+                }
             }
             .padding()
         }
@@ -304,9 +309,19 @@ struct CameraView: View {
             ))
         }
         .alert("Loading AI Model", isPresented: .constant(viewModel.isLoading && !viewModel.hasValidModel)) {
-            // Alert will show while loading
         } message: {
             Text("Getting ready to check for parents... Please wait! 🤖")
+        }
+        .onChange(of: viewModel.isParentPresent) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                watchConnectivity.sendStatusToWatch()
+                navigateToMapView = true
+            }
+        }
+        .onChange(of: watchConnectivity.shouldShowCameraView) {
+            if !watchConnectivity.shouldShowCameraView {
+                dismiss()
+            }
         }
     }
 }
@@ -355,5 +370,5 @@ struct ImagePicker: UIViewControllerRepresentable {
 }
 
 #Preview {
-//    CameraView()
+    //    CameraView()
 }

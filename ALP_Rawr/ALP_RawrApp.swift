@@ -17,6 +17,8 @@ struct ALP_RawrApp: App {
     @StateObject private var diaryViewModel = DiaryViewModel()
     @StateObject private var walkViewModel = WalkingViewModel()
     @StateObject private var agePredictionViewModel = AgePredictionViewModel()
+    @StateObject private var connectivityManager = WatchConnectivityManager.shared
+    
     
     init(){
         FirebaseApp.configure()
@@ -43,6 +45,7 @@ struct ALP_RawrApp: App {
                 .environmentObject(diaryViewModel)
                 .environmentObject(walkViewModel)
                 .environmentObject(agePredictionViewModel)
+                .environmentObject(connectivityManager)
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
                     if authViewModel.isSigningIn, let user = authViewModel.user {
                         petHomeViewModel.savePet()
