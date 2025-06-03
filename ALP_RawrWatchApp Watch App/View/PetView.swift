@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PetView: View {
-    @ObservedObject var petWatchViewModel: PetWatchViewModel
+    @ObservedObject var petWatchViewModel: iOSConnectivity
     @Binding var showPet: Bool
     
     var body: some View {
@@ -43,5 +43,5 @@ struct PetView: View {
 }
 
 #Preview {
-    PetView(petWatchViewModel: PetWatchViewModel(), showPet: .constant(true))
+    PetView(petWatchViewModel: iOSConnectivity(), showPet: .constant(true))
 }

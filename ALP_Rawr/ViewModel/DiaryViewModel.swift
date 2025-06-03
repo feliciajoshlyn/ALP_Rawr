@@ -8,9 +8,9 @@
 import Foundation
 import WatchConnectivity
 
-class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
-    private let diaryService : DiaryServiceProtocol
-    var session: WCSession
+class DiaryViewModel : ObservableObject{
+    let diaryService : DiaryServiceProtocol
+//    var session: WCSession
     
     @Published var diary: [DiaryEntry] = []
     @Published var friends: [MyUser] = []
@@ -22,12 +22,12 @@ class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
     
 //    private let diaryService = DiaryService.shared
     
-    init(session: WCSession = .default, diaryService :DiaryServiceProtocol = DiaryService.shared) {
-        self.session = session
+    init(diaryService :DiaryServiceProtocol = DiaryService.shared) {
+//        self.session = session
         self.diaryService = diaryService
-        super.init()
-        session.delegate = self
-        session.activate()
+//        super.init()
+//        session.delegate = self
+//        session.activate()
     }
     
     func loadEntries(for userId: String) {
@@ -163,89 +163,89 @@ class DiaryViewModel : NSObject, ObservableObject, WCSessionDelegate{
     }
     
     
-    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {}
-    
-    func sessionDidBecomeInactive(_ session: WCSession) {}
-    
-    func sessionDidDeactivate(_ session: WCSession) {}
-    
-    func sendDiarytoWatch() {
-        //make sure bsa connect ke watch dlu
-        guard WCSession.default.isReachable else {
-            print("Watch is not reachable")
-            return
-        }
-        
-        let diaryPayLoad = diary.map { entry in
-            return [
-                "id": entry.id,
-                "userId": entry.userId,
-                "title": entry.title,
-                "text": entry.text,
-                "createdAt": entry.createdAt.timeIntervalSince1970
-            ]
-        }
-        
-        let dataToSend: [String: Any] = ["diaryEntries": diaryPayLoad]
-        
-        self.session.sendMessage(dataToSend, replyHandler: { response in
-            print("Watch replied: \(response)")
-        }, errorHandler: { error in
-            print("failed to send message : \(error)")
-        })
-    }
-    
-    func sendFriendstoWatch() {
-        guard WCSession.default.isReachable else {
-            print("Watch is not reachable")
-            return
-        }
-        
-        let friendPayLoad = friends.map { friend in
-            return [
-                "uid": friend.id,
-                "username": friend.username,
-                ]
-            }
-        let dataToSend: [String: Any] = ["friends": friendPayLoad]
-        
-        self.session.sendMessage(dataToSend, replyHandler: { response in
-            print("Watch replied: \(response)")
-        }, errorHandler: { error in
-            print("failed to send message : \(error)")
-        })
-    }
-    
-    func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
-        if let action = message["action"] as? String {
-            switch action {
-            case "searchFriend":
-                if let uid = message["uid"] as? String {
-                    diaryService.searchUser(byUID: uid) { user in
-                        if let user = user {
-                            replyHandler([
-                                "status": "success",
-                                "username": user.username
-                            ])
-                        } else {
-                            replyHandler(["status": "not_found"])
-                        }
-                    }
-                }
-                
-            case "addFriend":
-                if let userId = message["userId"] as? String,
-                   let friendId = message["friendId"] as? String {
-                    diaryService.addMutualFriend(currentUserId: userId, friendId: friendId) { success in
-                        replyHandler(["status": success ? "success" : "failed"])
-                    }
-                }
-                
-            default:
-                replyHandler(["status": "unknown_action"])
-            }
-        } else {
-            replyHandler(["status": "no_action"])
-        }
-    }
+//    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {}
+//    
+//    func sessionDidBecomeInactive(_ session: WCSession) {}
+//    
+//    func sessionDidDeactivate(_ session: WCSession) {}
+//    
+//    func sendDiarytoWatch() {
+//        //make sure bsa connect ke watch dlu
+//        guard WCSession.default.isReachable else {
+//            print("Watch is not reachable")
+//            return
+//        }
+//        
+//        let diaryPayLoad = diary.map { entry in
+//            return [
+//                "id": entry.id,
+//                "userId": entry.userId,
+//                "title": entry.title,
+//                "text": entry.text,
+//                "createdAt": entry.createdAt.timeIntervalSince1970
+//            ]
+//        }
+//        
+//        let dataToSend: [String: Any] = ["diaryEntries": diaryPayLoad]
+//        
+//        self.session.sendMessage(dataToSend, replyHandler: { response in
+//            print("Watch replied: \(response)")
+//        }, errorHandler: { error in
+//            print("failed to send message : \(error)")
+//        })
+//    }
+//    
+//    func sendFriendstoWatch() {
+//        guard WCSession.default.isReachable else {
+//            print("Watch is not reachable")
+//            return
+//        }
+//        
+//        let friendPayLoad = friends.map { friend in
+//            return [
+//                "uid": friend.id,
+//                "username": friend.username,
+//                ]
+//            }
+//        let dataToSend: [String: Any] = ["friends": friendPayLoad]
+//        
+//        self.session.sendMessage(dataToSend, replyHandler: { response in
+//            print("Watch replied: \(response)")
+//        }, errorHandler: { error in
+//            print("failed to send message : \(error)")
+//        })
+//    }
+//    
+//    func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
+//        if let action = message["action"] as? String {
+//            switch action {
+//            case "searchFriend":
+//                if let uid = message["uid"] as? String {
+//                    diaryService.searchUser(byUID: uid) { user in
+//                        if let user = user {
+//                            replyHandler([
+//                                "status": "success",
+//                                "username": user.username
+//                            ])
+//                        } else {
+//                            replyHandler(["status": "not_found"])
+//                        }
+//                    }
+//                }
+//                
+//            case "addFriend":
+//                if let userId = message["userId"] as? String,
+//                   let friendId = message["friendId"] as? String {
+//                    diaryService.addMutualFriend(currentUserId: userId, friendId: friendId) { success in
+//                        replyHandler(["status": success ? "success" : "failed"])
+//                    }
+//                }
+//                
+//            default:
+//                replyHandler(["status": "unknown_action"])
+//            }
+//        } else {
+//            replyHandler(["status": "no_action"])
+//        }
+//    }
 }

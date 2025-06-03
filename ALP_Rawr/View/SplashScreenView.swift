@@ -8,6 +8,13 @@
 import SwiftUI
 
 struct SplashScreenView: View {
+    @EnvironmentObject var connectivityManager: WatchConnectivityManager
+    @EnvironmentObject var locationViewModel: LocationViewModel
+    @EnvironmentObject var agePredictionViewModel: AgePredictionViewModel
+    @EnvironmentObject var walkViewModel: WalkingViewModel
+    @EnvironmentObject var petHomeViewModel: PetHomeViewModel
+    @EnvironmentObject var diaryViewModel: DiaryViewModel
+    
     @State var isActive: Bool = false
     
     var body: some View {
@@ -30,6 +37,16 @@ struct SplashScreenView: View {
                     withAnimation{
                         self.isActive = true
                     }
+                }
+                
+                Task { @MainActor in
+                    connectivityManager.injectViewModels(
+                        locationVM: locationViewModel,
+                        agePredictionVM: agePredictionViewModel,
+                        walkingVM: walkViewModel,
+                        petHomeVM: petHomeViewModel,
+                        diaryVM: diaryViewModel
+                    )
                 }
             }
         }

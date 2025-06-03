@@ -18,6 +18,8 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
     @Published var walkingDistance: Double = 0.0
     @Published var walkingDuration: TimeInterval = 0.0
     
+    @Published var pet: PetModel = PetModel()
+    
     var session: WCSession
     
     init(session: WCSession = .default){
@@ -76,30 +78,57 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
     func sendPetToiOS(){
         if session.isReachable {
             let dataToSend: [String : Any] = [
-                "type": InteractionType.petting
+                "type": "petting"
             ]
-            session.sendMessage(dataToSend, replyHandler: { response in
-                print("Pet message reply: \(response)")
-            }){ error in
-                print("Error sending pet message: \(error.localizedDescription)")
+            session.sendMessage(dataToSend, replyHandler: nil){ error in
+                print("Error sending message: \(error.localizedDescription)")
             }
-        } else {
-            print("Session is not reachable for petting")
+        }else{
+            print("Session is not reachable")
         }
     }
     
     func sendFeedToiOS(){
+        print("Attempting to send feed message...")
+        print("Session state - isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
+        
         if session.isReachable {
             let dataToSend: [String : Any] = [
-                "type": InteractionType.feeding
+                "type": "feeding"
             ]
-            session.sendMessage(dataToSend, replyHandler: { response in
-                print("Feed message reply: \(response)")
+            print("Sending message: \(dataToSend)")
+            session.sendMessage(dataToSend, replyHandler: { reply in
+                print("Received reply: \(reply)")
             }){ error in
-                print("Error sending feed message: \(error.localizedDescription)")
+                print("Error sending message: \(error.localizedDescription)")
             }
         } else {
-            print("Session is not reachable for feeding")
+            print("Session is not reachable")
+        }
+    }
+    
+    func fetchPetFromiOS(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        guard let petDict = message["petData"] else {
+            print("No pet data received")
+            return
+        }
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: petDict)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601 // Same as encoder
+            let pet = try decoder.decode(PetModel.self, from: jsonData)
+            
+            // Do something with the decoded pet
+            print("Received pet: \(pet.name), hunger: \(pet.hunger)")
+            
+            // e.g., update view model or @Published pet property
+            DispatchQueue.main.async {
+                self.pet = pet
+            }
+
+        } catch {
+            print("Error decoding pet model: \(error)")
         }
     }
     

@@ -9,8 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var diaryWatchViewModel: DiaryWatchViewModel
-    @EnvironmentObject private var petWatchViewModel: PetWatchViewModel
-    @EnvironmentObject private var connectivityManager: WatchConnectivityManager
+//    @EnvironmentObject private var petWatchViewModel: PetWatchViewModel
+//    @EnvironmentObject private var connectivityManager: WatchConnectivityManager
     @ObservedObject var connectivity: iOSConnectivity
     @State private var showPet: Bool = false
     @State private var showDiary: Bool = false
@@ -39,15 +39,15 @@ struct ContentView: View {
                 }
             }
             .navigationDestination(isPresented: $showPet) {
-                PetView(petWatchViewModel: self.petWatchViewModel, showPet: $showPet)
+                PetView(petWatchViewModel: self.connectivity, showPet: $showPet)
             }
             .navigationDestination(isPresented: $showDiary){
                 DiaryWatchView(diaryWatchViewModel: self.diaryWatchViewModel)
             }
-            .navigationDestination(isPresented: $showWalk){
-                WatchWalkingView(connectivity: connectivity)
-                    .environmentObject(connectivityManager)
-            }
+//            .navigationDestination(isPresented: $showWalk){
+//                WatchWalkingView(connectivity: connectivity)
+//                    .environmentObject(connectivityManager)
+//            }
         }
     }
 }

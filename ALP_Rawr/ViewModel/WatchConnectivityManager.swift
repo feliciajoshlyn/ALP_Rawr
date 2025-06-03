@@ -9,7 +9,7 @@ import Foundation
 import WatchConnectivity
 import Combine
 
-class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
+class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, ObservableObject {
     
     static let shared = WatchConnectivityManager()
     
@@ -20,6 +20,8 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
     var locationVM: LocationViewModel?
     var agePredictionVM: AgePredictionViewModel?
     var walkingVM: WalkingViewModel?
+    var petHomeVM: PetHomeViewModel?
+    var diaryVM: DiaryViewModel?
     
     // Combine cancellables to observe view model changes
     private var cancellables = Set<AnyCancellable>()
@@ -79,14 +81,42 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
     }
 #endif
     
+    @MainActor
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
-        //
+        print("Session with watch connected to WatchConnectivityManager")
+//        if activationState == .activated && session.isReachable {
+//            self.sendPetToWatch(pet: petHomeVM?.pet ?? PetModel())
+//        }
     }
     
 #if os(iOS)
     func sessionDidBecomeInactive(_ session: WCSession) { }
     
     func sessionDidDeactivate(_ session: WCSession) { }
+#endif
+    
+private var hasInjected = false
+    
+#if os(iOS)
+@MainActor
+func injectViewModels(
+    locationVM: LocationViewModel,
+    agePredictionVM: AgePredictionViewModel,
+    walkingVM: WalkingViewModel,
+    petHomeVM: PetHomeViewModel,
+    diaryVM: DiaryViewModel // <-- add this
+) {
+    guard !hasInjected else { return }
+    hasInjected = true
+
+    self.locationVM = locationVM
+    self.agePredictionVM = agePredictionVM
+    self.walkingVM = walkingVM
+    self.petHomeVM = petHomeVM
+    self.diaryVM = diaryVM // <-- set it
+
+    setupViewModelObservers()
+}
 #endif
     
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
@@ -96,10 +126,12 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
                 switch messageType {
                 case "petting":
                     print("Received petting request from watch")
+                    self.petHomeVM?.applyInteraction(.petting)
                     replyHandler(["success": true])
                     
                 case "feeding":
                     print("Received feeding request from watch")
+                    self.petHomeVM?.applyInteraction(.feeding)
                     replyHandler(["success": true])
                     
                 case "walking":
@@ -122,6 +154,40 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
                         self.stopWalkingAndSave()
                         replyHandler(["walkingStopped": true])
                         print("Walking stopped from watch request")
+                    }
+                    
+                case "syncDiary":
+                    self.sendDiaryToWatch()
+                    replyHandler(["status": "diary_sent"])
+                    
+                case "syncFriends":
+                    self.sendFriendsToWatch()
+                    replyHandler(["status": "friends_sent"])
+
+                case "searchFriend":
+                    if let uid = message["uid"] as? String {
+                        self.diaryVM?.diaryService.searchUser(byUID: uid) { user in
+                            if let user = user {
+                                replyHandler([
+                                    "status": "success",
+                                    "username": user.username
+                                ])
+                            } else {
+                                replyHandler(["status": "not_found"])
+                            }
+                        }
+                    } else {
+                        replyHandler(["status": "invalid_uid"])
+                    }
+
+                case "addFriend":
+                    if let userId = message["userId"] as? String,
+                       let friendId = message["friendId"] as? String {
+                        self.diaryVM?.diaryService.addMutualFriend(currentUserId: userId, friendId: friendId) { success in
+                            replyHandler(["status": success ? "success" : "failed"])
+                        }
+                    } else {
+                        replyHandler(["status": "invalid_params"])
                     }
                     
                 default:
@@ -206,4 +272,83 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
         }
     }
 #endif
+    
+#if os(iOS)
+@MainActor
+func sendDiaryToWatch() {
+    guard WCSession.default.isReachable else {
+        print("Watch is not reachable")
+        return
+    }
+    
+    guard let diary = diaryVM?.diary else { return }
+
+    let diaryPayload = diary.map { entry in
+        return [
+            "id": entry.id,
+            "userId": entry.userId,
+            "title": entry.title,
+            "text": entry.text,
+            "createdAt": entry.createdAt.timeIntervalSince1970
+        ]
+    }
+    
+    let dataToSend: [String: Any] = ["diaryEntries": diaryPayload]
+    
+    WCSession.default.sendMessage(dataToSend, replyHandler: { response in
+        print("Watch replied to diary: \(response)")
+    }, errorHandler: { error in
+        print("Failed to send diary: \(error)")
+    })
+}
+
+@MainActor
+func sendFriendsToWatch() {
+    guard WCSession.default.isReachable else {
+        print("Watch is not reachable")
+        return
+    }
+    
+    guard let friends = diaryVM?.friends else { return }
+
+    let friendPayload = friends.map { friend in
+        return [
+            "uid": friend.id,
+            "username": friend.username
+        ]
+    }
+    
+    let dataToSend: [String: Any] = ["friends": friendPayload]
+    
+    WCSession.default.sendMessage(dataToSend, replyHandler: { response in
+        print("Watch replied to friends: \(response)")
+    }, errorHandler: { error in
+        print("Failed to send friends: \(error)")
+    })
+}
+
+@MainActor
+func sendPetToWatch(pet: PetModel) {
+    guard WCSession.default.isReachable else {
+        print("Watch is not reachable.")
+        return
+    }
+
+    do {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601 // Match decoding strategy on the Watch
+        let data = try encoder.encode(pet)
+        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            WCSession.default.sendMessage(["petData": json], replyHandler: nil) { error in
+                print("Error sending petData: \(error.localizedDescription)")
+            }
+        }
+    } catch {
+        print("Failed to encode PetModel: \(error)")
+    }
+}
+
+    
+#endif
+
 }

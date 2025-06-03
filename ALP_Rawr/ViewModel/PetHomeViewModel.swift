@@ -10,7 +10,7 @@ import FirebaseDatabase
 import FirebaseAuth
 import WatchConnectivity
 
-class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
+class PetHomeViewModel: ObservableObject{
     // Published variables, yang akan digunakan di View
     @Published var pet: PetModel = PetModel()
     @Published var currEmotion: String = "Happy"
@@ -28,15 +28,10 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     private var timer: Timer?
     
     //Session untuk connect ke watch
-    var session: WCSession
     
     //PetService diinject melalui init
-    init(petService: PetService = LivePetService(), session: WCSession = .default) {
+    init(petService: PetService = LivePetService()) {
         self.petService = petService
-        self.session = session
-        super.init()
-        session.delegate = self
-        session.activate()
     }
     
     //Saat ViewModel tidak dipakai lagi, timernya dimatikan
@@ -44,29 +39,42 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         timer?.invalidate()
     }
     
-    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
-        if activationState == .activated && session.isReachable {
-            self.sendPetToWatch(pet: self.pet)
-        }
-    }
+//    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
+//        if activationState == .activated && session.isReachable {
+//            self.sendPetToWatch(pet: self.pet)
+//        }
+//    }
+//    
+//    func sessionDidBecomeInactive(_ session: WCSession) {
+//        self.savePet()
+//    }
+//    
+//    func sessionDidDeactivate(_ session: WCSession) {
+//        self.savePet()
+//    }
     
-    func sessionDidBecomeInactive(_ session: WCSession) {
-        self.savePet()
-    }
-    
-    func sessionDidDeactivate(_ session: WCSession) {
-        self.savePet()
-    }
-    
-    func session(_ session: WCSession, didReceiveMessage message: [String : Any ]) {
-        DispatchQueue.main.async{
-            print("Received message: \(message)")
-            
-            self.applyInteraction(message["type"] as! InteractionType)
-        }
-        
-        self.sendPetToWatch(pet: self.pet)
-    }
+//    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+//        print("📱 iOS received message: \(message)")
+//        DispatchQueue.main.async {
+//            print("Processing message on main thread")
+//            print("Received message: \(message)")
+//            var interactionType = InteractionType.feeding
+//            
+//            switch message["type"] as! String {
+//            case "feeding":
+//                interactionType = InteractionType.feeding
+//            case "petting":
+//                interactionType = InteractionType.petting
+//            default:
+//                break
+//            }
+//            
+//            self.applyInteraction(interactionType)
+//            print("Applied interaction, new hunger level: \(self.pet.hunger)")
+//        }
+//                
+//        self.sendPetToWatch(pet: self.pet)
+//    }
     
     //Function untuk mengambil pet data, tidak bisa dijalankan di init karena membutuhkan user sudah login, sementara ViewModel ini dibuat bersamaan
     // dengan AuthViewModel, supaya bisa diakses di view-view lain pada aplikasi, dan saat AuthViewModel pertama dibuat, bisa saja belum ada user yang login
@@ -96,6 +104,7 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
                 if let fetchedPet = pet {
                     //PetService akan return Pet yang diambil kalau berhasil, trs dimasukkan variabel pet-nya ViewModel
                     self?.pet = fetchedPet
+                    WatchConnectivityManager.shared.sendPetToWatch(pet: fetchedPet)
                 } else {
                     //Kalau gagal, setup default pet
                     self?.setupDefaultPet()
@@ -156,6 +165,7 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         } else if type == .feeding {
             pet.lastFed = Date()
             pet.hunger = min(100.0, pet.hunger + 1.0)
+            print("Difeed dari watch untuk \(pet.name)")
         } else if type == .showering {
             pet.lastShower = Date()
         }
@@ -418,23 +428,23 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         timer?.invalidate()
     }
     
-    func sendPetToWatch(pet: PetModel) {
-        guard WCSession.default.isReachable else {
-            print("Watch is not reachable.")
-            return
-        }
-
-        do {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601 // Or `.millisecondsSince1970` — just match on both ends
-            let data = try encoder.encode(pet)
-            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                WCSession.default.sendMessage(["petData": json], replyHandler: nil) { error in
-                    print("Error sending petData: \(error.localizedDescription)")
-                }
-            }
-        } catch {
-            print("Failed to encode PetModel: \(error)")
-        }
-    }
+//    func sendPetToWatch(pet: PetModel) {
+//        guard WCSession.default.isReachable else {
+//            print("Watch is not reachable.")
+//            return
+//        }
+//
+//        do {
+//            let encoder = JSONEncoder()
+//            encoder.dateEncodingStrategy = .iso8601 // Or `.millisecondsSince1970` — just match on both ends
+//            let data = try encoder.encode(pet)
+//            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+//                WCSession.default.sendMessage(["petData": json], replyHandler: nil) { error in
+//                    print("Error sending petData: \(error.localizedDescription)")
+//                }
+//            }
+//        } catch {
+//            print("Failed to encode PetModel: \(error)")
+//        }
+//    }
 }
