@@ -8,29 +8,33 @@
 import Foundation
 import FirebaseFirestore
 
-class DiaryService{
+class DiaryService : DiaryServiceProtocol{
+    
     static let shared = DiaryService()
     
     private let db = Firestore.firestore()
     private init() {}
     
-    func fetchDiaryEntries(forUserId userId: String, completion: @escaping ([DiaryEntry]) -> Void){
-        db.collection("diaryEntries")
-            .whereField("userId", isEqualTo: userId)
-            .order(by: "createdAt", descending: true)
-            .getDocuments { snapshot, error in
-                guard let docs = snapshot?.documents, error == nil else {
-                    print("Error fetching diary entries: \(error?.localizedDescription ?? "Unknown error")")
-                    completion([])
-                    return
-                }
-                let entries = docs.map { DiaryEntry(id: $0.documentID, data: $0.data()) }
-                completion(entries)
-            }
-    }
+    //not used as now we use the fetchdiary with friends
+//    func fetchDiaryEntries(forUserId userId: String, completion: @escaping ([DiaryEntry]) -> Void){
+//        db.collection("diaryEntries")
+//            .whereField("userId", isEqualTo: userId)
+//            .order(by: "createdAt", descending: true)
+//            .getDocuments { snapshot, error in
+//                guard let docs = snapshot?.documents, error == nil else {
+//                    print("Error fetching diary entries: \(error?.localizedDescription ?? "Unknown error")")
+//                    completion([])
+//                    return
+//                }
+//                let entries = docs.map { DiaryEntry(id: $0.documentID, data: $0.data()) }
+//                completion(entries)
+//            }
+//    }
     
+    //for the diary page, it would fetch the user and the user's friends entries to show
     func fetchDiaryWithFriends(userId: String, friends: [String], completion: @escaping ([DiaryEntry]) -> Void){
         let allIds = friends + [userId]
+        //get the documents where the field userId has the user and the friends'
         db.collection("diaryEntries")
             .whereField("userId", in: allIds)
             .order(by: "createdAt", descending: true)
@@ -45,14 +49,16 @@ class DiaryService{
             }
     }
     
-    func addDiaryEntry(_entry : DiaryEntry, completion: @escaping (Bool) -> Void) {
+    // add diary entry for a user with title and text
+    func addDiaryEntry(entry : DiaryEntry, completion: @escaping (Bool) -> Void) {
         let data: [String: Any] = [
-            "userId": _entry.userId,
-            "title": _entry.title,
-            "text": _entry.text,
-            "createdAt": _entry.createdAt.timeIntervalSince1970
+            "userId": entry.userId,
+            "title": entry.title,
+            "text": entry.text,
+            "createdAt": entry.createdAt.timeIntervalSince1970
         ]
         
+        //put in the firestore, add a document
         db.collection("diaryEntries").addDocument(data: data) { error in
             if let error = error {
                 print("Error adding diary entry: \(error.localizedDescription)")
@@ -64,80 +70,81 @@ class DiaryService{
     }
     
     //for reactions not used for now
-    func addOrUpdateReaction(toEntryId entryId: String, reaction: Reaction, completion: @escaping(Bool) -> Void) {
-        guard !entryId.isEmpty else {
-            print("Invalid entryId: empty string")
-            completion(false)
-            return
-        }
-        
-        let data: [String: Any] = [
-            "userId": reaction.userId,
-            "reaction": reaction.id,
-            "isLiked": reaction.isLiked,
-            "comment": reaction.comment ?? "",
-            "createdAt": reaction.createdAt.timeIntervalSince1970
-        ]
-        
-        let reactionRef = db.collection("diaryEntries")
-            .document(entryId)
-            .collection("reactions")
-            .document(reaction.userId)
-        
-        reactionRef.setData(data, merge: true) { error in
-            if let error = error {
-                print("Error adding reaction: \(error.localizedDescription)")
-                completion(false)
-                return
-            }
-            completion(true)
-        }
-    }
+//    func addOrUpdateReaction(toEntryId entryId: String, reaction: Reaction, completion: @escaping(Bool) -> Void) {
+//        guard !entryId.isEmpty else {
+//            print("Invalid entryId: empty string")
+//            completion(false)
+//            return
+//        }
+//        
+//        let data: [String: Any] = [
+//            "userId": reaction.userId,
+//            "reaction": reaction.id,
+//            "isLiked": reaction.isLiked,
+//            "comment": reaction.comment ?? "",
+//            "createdAt": reaction.createdAt.timeIntervalSince1970
+//        ]
+//        
+//        let reactionRef = db.collection("diaryEntries")
+//            .document(entryId)
+//            .collection("reactions")
+//            .document(reaction.userId)
+//        
+//        reactionRef.setData(data, merge: true) { error in
+//            if let error = error {
+//                print("Error adding reaction: \(error.localizedDescription)")
+//                completion(false)
+//                return
+//            }
+//            completion(true)
+//        }
+//    }
+//    
+//    func fetchReaction(for entryId: String, userId: String, completion: @escaping(Reaction?) -> Void) {
+//        guard !entryId.isEmpty else {
+//            print("Invalid entryId: empty string")
+//            completion(nil)
+//            return
+//        }
+//        db.collection("diaryEntries").document(entryId)
+//            .collection("reactions").document(userId)
+//            .getDocument { document, error in
+//                if let error = error {
+//                    print("Error fetching reaction: \(error.localizedDescription)")
+//                    completion(nil)
+//                    return
+//                }
+//                if let document = document, document.exists, let data = document.data(){
+//                    let reaction = Reaction(id: document.documentID, data: data)
+//                    completion(reaction)
+//                }else {
+//                    completion(nil)
+//                    //artinya no reactions yet
+//                }
+//            }
+//    }
+//    
+//    func fetchReactions(toEntryId entryId: String, completion: @escaping ([Reaction]) -> Void) {
+//        guard !entryId.isEmpty else {
+//            print("Invalid entryId: empty string")
+//            completion([])
+//            return
+//        }
+//        db.collection("diaryEntries").document(entryId)
+//            .collection("reactions")
+//            .order(by: "createdAt", descending: true)
+//            .getDocuments { snapshot, error in
+//                guard let docs = snapshot?.documents, error == nil else {
+//                    print("Error fetching reactions: \(error?.localizedDescription ?? "Unknown error")")
+//                    completion([])
+//                    return
+//                }
+//                let reactions = docs.map { Reaction(id: $0.documentID, data: $0.data())}
+//                completion(reactions)
+//            }
+//    }
     
-    func fetchReaction(for entryId: String, userId: String, completion: @escaping(Reaction?) -> Void) {
-        guard !entryId.isEmpty else {
-            print("Invalid entryId: empty string")
-            completion(nil)
-            return
-        }
-        db.collection("diaryEntries").document(entryId)
-            .collection("reactions").document(userId)
-            .getDocument { document, error in
-                if let error = error {
-                    print("Error fetching reaction: \(error.localizedDescription)")
-                    completion(nil)
-                    return
-                }
-                if let document = document, document.exists, let data = document.data(){
-                    let reaction = Reaction(id: document.documentID, data: data)
-                    completion(reaction)
-                }else {
-                    completion(nil)
-                    //artinya no reactions yet
-                }
-            }
-    }
-    
-    func fetchReactions(toEntryId entryId: String, completion: @escaping ([Reaction]) -> Void) {
-        guard !entryId.isEmpty else {
-            print("Invalid entryId: empty string")
-            completion([])
-            return
-        }
-        db.collection("diaryEntries").document(entryId)
-            .collection("reactions")
-            .order(by: "createdAt", descending: true)
-            .getDocuments { snapshot, error in
-                guard let docs = snapshot?.documents, error == nil else {
-                    print("Error fetching reactions: \(error?.localizedDescription ?? "Unknown error")")
-                    completion([])
-                    return
-                }
-                let reactions = docs.map { Reaction(id: $0.documentID, data: $0.data())}
-                completion(reactions)
-            }
-    }
-    
+    //function for search user
     func searchUser(byUID uid: String, completion: @escaping (MyUser?) -> Void) {
         db.collection("users").document(uid).getDocument { document, error in
             guard let document = document, document.exists, error == nil,
