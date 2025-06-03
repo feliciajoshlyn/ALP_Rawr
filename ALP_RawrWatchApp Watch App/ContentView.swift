@@ -25,7 +25,7 @@ struct ContentView: View {
                     Text("View Pet")
                 }
                 Button(action: {
-                    showPet = true
+                    showDiary = true
                 }){
                     Text("View Diary")
                 }
