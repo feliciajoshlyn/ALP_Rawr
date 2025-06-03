@@ -100,6 +100,7 @@
 				Model/PetModel.swift,
 				Model/Reaction.swift,
 				Model/SpriteModel.swift,
+				ViewModel/WatchConnectivityManager.swift,
 			);
 			target = 3FF34C372DE99D270027FEA5 /* ALP_RawrWatchApp Watch App */;
 		};

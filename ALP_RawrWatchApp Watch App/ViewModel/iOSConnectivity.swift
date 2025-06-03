@@ -5,6 +5,10 @@
 //  Created by student on 30/05/25.
 //
 
+import Foundation
+import Combine
+import WatchConnectivity
+
 //Handle connectivity di watchOSnya
 public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
     
