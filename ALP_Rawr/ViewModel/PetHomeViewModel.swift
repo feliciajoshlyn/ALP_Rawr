@@ -11,8 +11,43 @@ import FirebaseAuth
 import WatchConnectivity
 
 class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
+    // Published variables, yang akan digunakan di View
+    @Published var pet: PetModel = PetModel()
+    @Published var currEmotion: String = "Happy"
+    @Published var icon: String = "happybadge"
+    @Published var hasFetchData: Bool = false
+    
+    //PetService untuk function-function yang connect ke Realtime DB
+    private let petService: PetService
+
+    //User untuk menerima dan nanti pakai atribut user yang lagi login
+    private var user: User?
+    private var userUid: String?
+    
+    //Timer untuk menjalankan function yang akan melakukan pengecekan secara berkala
+    private var timer: Timer?
+    
+    //Session untuk connect ke watch
+    var session: WCSession
+    
+    //PetService diinject melalui init
+    init(petService: PetService = LivePetService(), session: WCSession = .default) {
+        self.petService = petService
+        self.session = session
+        super.init()
+        session.delegate = self
+        session.activate()
+    }
+    
+    //Saat ViewModel tidak dipakai lagi, timernya dimatikan
+    deinit {
+        timer?.invalidate()
+    }
+    
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
-        
+        if activationState == .activated && session.isReachable {
+            self.sendPetToWatch(pet: self.pet)
+        }
     }
     
     func sessionDidBecomeInactive(_ session: WCSession) {
@@ -29,43 +64,13 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
             
             self.applyInteraction(message["type"] as! InteractionType)
         }
-    }
-    
-    // Published variables, yang akan digunakan di View
-    @Published var pet: PetModel = PetModel()
-    @Published var currEmotion: String = "Happy"
-    @Published var icon: String = "happybadge"
-    @Published var hasFetchData: Bool = false
-    
-    //PetService untuk function-function yang connect ke Realtime DB
-    private let petService: PetService
-
-    //User untuk menerima dan nanti pakai atribut user yang lagi login
-    private var user: User?
-    
-    //Timer untuk menjalankan function yang akan melakukan pengecekan secara berkala
-    private var timer: Timer?
-    
-    //Session untuk connect ke watch
-    var session: WCSession
-    
-    //PetService diinject melalui init
-    init(petService: PetService = PetService(), session: WCSession = .default) {
-        self.petService = petService
-        self.session = session
-        super.init()
-        session.delegate = self
-        session.activate()
-    }
-    
-    //Saat ViewModel tidak dipakai lagi, timernya dimatikan
-    deinit {
-        timer?.invalidate()
+        
+        self.sendPetToWatch(pet: self.pet)
     }
     
     //Function untuk mengambil pet data, tidak bisa dijalankan di init karena membutuhkan user sudah login, sementara ViewModel ini dibuat bersamaan
     // dengan AuthViewModel, supaya bisa diakses di view-view lain pada aplikasi, dan saat AuthViewModel pertama dibuat, bisa saja belum ada user yang login
-    func fetchPetData() {
+    func fetchPetData(currentUserId: String? = Auth.auth().currentUser?.uid) {
         
         //Supaya gak fetch data berulang kali sebelum data disimpan di DB, nanti overwrite perubahan yang terjadi di app ini
         guard !hasFetchData else {
@@ -76,11 +81,8 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         //Kalau sebelumnya hasFetchData == false, akan diset jadi true di sini
         hasFetchData = true
         
-        //Ambil user dari yang lagi login di Firebase
-        self.user = Auth.auth().currentUser
-        
         //Error handling kalau semisal saja user kosong, petnya diset jadi default
-        guard let userId = user?.uid else {
+        guard let userId = currentUserId else {
             print("No user ID found, setting up default pet")
             setupDefaultPet()
             self.startTimer()
@@ -384,8 +386,8 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     
     //Panggil PetService buat update data pet ke DB
     //Bakal dilakukan tiap kali logout dan user keluar aplikasi (pencet home)
-    func savePet(){
-        guard let userId = user?.uid else {
+    func savePet(currentUserId: String? = Auth.auth().currentUser?.uid){
+        guard let userId = currentUserId else {
             return
         }
         
@@ -402,8 +404,8 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
     }
     
     //Ambil ulang setelah user keluar aplikasi (cuman leave app bukan logout)
-    func refetchPetData() {
-        fetchPetData()
+    func refetchPetData(currentUserId: String? = Auth.auth().currentUser?.uid) {
+        fetchPetData(currentUserId: currentUserId)
         self.updatePetStatusPeriodically()
         self.checkCurrEmotion()
     }
@@ -414,5 +416,25 @@ class PetHomeViewModel: NSObject, ObservableObject, WCSessionDelegate {
         icon = "happybadge"
         hasFetchData = false
         timer?.invalidate()
+    }
+    
+    func sendPetToWatch(pet: PetModel) {
+        guard WCSession.default.isReachable else {
+            print("Watch is not reachable.")
+            return
+        }
+
+        do {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601 // Or `.millisecondsSince1970` — just match on both ends
+            let data = try encoder.encode(pet)
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                WCSession.default.sendMessage(["petData": json], replyHandler: nil) { error in
+                    print("Error sending petData: \(error.localizedDescription)")
+                }
+            }
+        } catch {
+            print("Failed to encode PetModel: \(error)")
+        }
     }
 }

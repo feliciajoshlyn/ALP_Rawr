@@ -160,12 +160,12 @@ struct PetHomeView: View {
         }
         .onAppear {
             if authViewModel.isSigningIn, let user = authViewModel.user {
-                petHomeViewModel.fetchPetData()
+                petHomeViewModel.fetchPetData(currentUserId: user.uid)
                 petHomeViewModel.checkCurrEmotion()
             }
             
-            if !petHomeViewModel.hasFetchData {
-                petHomeViewModel.fetchPetData()
+            if !petHomeViewModel.hasFetchData, let user = authViewModel.user {
+                petHomeViewModel.fetchPetData(currentUserId: user.uid)
             }
         }
         .onChange(of: authViewModel.user) { _, newUser in
@@ -216,6 +216,6 @@ struct PetHomeView: View {
 #Preview {
     PetHomeView()
         .environmentObject(AuthViewModel())
-        .environmentObject(PetHomeViewModel(petService: PetService()))
+        .environmentObject(PetHomeViewModel(petService: LivePetService()))
         .environmentObject(DiaryViewModel())
 }
