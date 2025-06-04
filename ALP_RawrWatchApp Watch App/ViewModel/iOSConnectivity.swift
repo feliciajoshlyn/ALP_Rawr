@@ -78,6 +78,7 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
         }
         fetchEntriesFromiOS(session, didReceiveMessage: message)
         fetchFriendsFromiOS(session, didReceiveMessage: message)
+        fetchPetFromiOS(session, didReceiveMessage: message)
     }
     
     func sendPetToiOS(){
@@ -94,8 +95,7 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
     }
     
     func sendFeedToiOS(){
-        print("Attempting to send feed message...")
-        print("Session state - isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
+        self.pet.hunger += 1
         
         if session.isReachable {
             let dataToSend: [String : Any] = [

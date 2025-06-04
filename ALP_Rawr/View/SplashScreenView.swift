@@ -38,7 +38,7 @@ struct SplashScreenView: View {
                         self.isActive = true
                     }
                 }
-                
+//                Masukkin dependencies thdp viewModel ke dlm ConnectivityManager
                 Task { @MainActor in
                     connectivityManager.injectViewModels(
                         locationVM: locationViewModel,

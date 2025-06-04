@@ -165,7 +165,6 @@ class PetHomeViewModel: ObservableObject{
         } else if type == .feeding {
             pet.lastFed = Date()
             pet.hunger = min(100.0, pet.hunger + 1.0)
-            print("Difeed dari watch untuk \(pet.name)")
         } else if type == .showering {
             pet.lastShower = Date()
         }

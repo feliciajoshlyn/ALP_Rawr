@@ -336,9 +336,10 @@ func sendPetToWatch(pet: PetModel) {
 
     do {
         let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601 // Match decoding strategy on the Watch
+        encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(pet)
         if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            print("Sending pet data to watch \(pet.name)")
             WCSession.default.sendMessage(["petData": json], replyHandler: nil) { error in
                 print("Error sending petData: \(error.localizedDescription)")
             }

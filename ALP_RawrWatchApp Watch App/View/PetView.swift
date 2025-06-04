@@ -12,29 +12,39 @@ struct PetView: View {
     @Binding var showPet: Bool
     
     var body: some View {
-        ZStack{
-            LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.green.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            VStack{
-                Image("dog_inplace_left")
-                    .resizable()
-                    .scaledToFit()
+        ScrollView{
+            ZStack{
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.green.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                HStack{
-                    Button(action: {
-                        petWatchViewModel.sendPetToiOS()
-                    }){
-                        Text("Pet Me")
+                VStack{
+                    HStack(alignment: .top){
+                        Text("\(petWatchViewModel.pet.name)")
+                        VStack{
+                            Text("Hunger:")
+                            Text("\(Int(petWatchViewModel.pet.hunger))")
+                        }
                     }
-                    Button(action: {
-                        petWatchViewModel.sendFeedToiOS()
-                    }){
-                        Text("Feed Me")
+                    
+                    Image("dog_inplace_left")
+                        .resizable()
+                        .scaledToFit()
+                    
+                    HStack{
+                        Button(action: {
+                            petWatchViewModel.sendPetToiOS()
+                        }){
+                            Text("Pet Me")
+                        }
+                        Button(action: {
+                            petWatchViewModel.sendFeedToiOS()
+                        }){
+                            Text("Feed Me")
+                        }
                     }
                 }
             }
