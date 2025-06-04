@@ -47,6 +47,9 @@ struct MainView: View {
         .onAppear{
             showAuthSheet = !authViewModel.isSigningIn
         }
+        .onChange(of: authViewModel.isSigningIn) { _, newValue in
+            showAuthSheet = !newValue
+        }
         .fullScreenCover(isPresented: $showAuthSheet){
             LoginRegisterSheet(showAuthSheet: $showAuthSheet)
         }

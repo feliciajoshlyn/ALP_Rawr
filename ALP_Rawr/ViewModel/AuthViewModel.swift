@@ -145,10 +145,40 @@ class AuthViewModel: ObservableObject {
     }
     
 
+<<<<<<< Updated upstream
     func createPetAsync(pet: PetModel) async -> Bool {
         return await withCheckedContinuation { continuation in
             petService.createPet(pet: pet) { success in
                 continuation.resume(returning: success)
+=======
+    func signUp() async {
+        guard !petName.isEmpty else {
+            DispatchQueue.main.async {
+                print("Pet name is required for sign up")
+                self.falseCredential = true
+            }
+            return
+        }
+
+        do {
+            let signedUpUser = try await authService.signUp(
+                email: myUser.email,
+                password: myUser.password,
+                username: myUser.username,
+                petName: petName
+            )
+//            DispatchQueue.main.async {
+                self.falseCredential = false
+                self.myUser = signedUpUser
+                self.user = Auth.auth().currentUser
+                self.isSigningIn = true
+//            }
+        } catch {
+            DispatchQueue.main.async {
+                print("SignUp error: \(error.localizedDescription)")
+                self.falseCredential = true
+                self.isSigningIn = false
+>>>>>>> Stashed changes
             }
         }
     }

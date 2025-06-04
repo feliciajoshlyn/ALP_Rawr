@@ -175,6 +175,10 @@ final class ALP_RawrTests: XCTestCase {
         XCTAssertEqual(self.petHomeViewModel.currEmotion, "Sad")
     }
     
+<<<<<<< Updated upstream
+=======
+    
+>>>>>>> Stashed changes
     func testUpdatePetStatusPeriodically() {
         // Step 1: Create a Pet with specific timestamps in the past
         let now = Date()
