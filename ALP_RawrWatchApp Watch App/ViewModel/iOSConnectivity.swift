@@ -138,13 +138,13 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
     }
     
     func sendWalkToiOS(){
+        // error handling untuk checking session
         if session.isReachable {
             let dataToSend: [String : Any] = [
                 "type": "walking",
                 "startWalking": true
             ]
             
-            print("Sending walk request to iOS...")
             session.sendMessage(dataToSend, replyHandler: { response in
                 DispatchQueue.main.async {
                     print("Walk message reply: \(response)")
@@ -168,7 +168,6 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
                 "stopWalking": true
             ]
             
-            print("Sending stop walking request to iOS...")
             session.sendMessage(dataToSend, replyHandler: { response in
                 DispatchQueue.main.async {
                     print("Stop walking message reply: \(response)")

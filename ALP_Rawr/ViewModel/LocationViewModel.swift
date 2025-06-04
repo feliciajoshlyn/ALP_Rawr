@@ -105,6 +105,9 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     func startWalking() {
         print("🚶 Starting walking session")
         
+        // Stop any existing timers first
+        stopAllTimers()
+        
         walkingPath = []
         walkingDistance = 0
         walkingDuration = 0
@@ -120,49 +123,57 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         print("Starting walk at: \(currentTime)")
 
         // Start simulation timer
-        walkTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+        walkTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
             guard self.simulatedIndex < self.simulatedPath.count else {
-                self.stopWalking()
+                DispatchQueue.main.async {
+                    self.stopWalking()
+                }
                 return
             }
 
             let newCoord = self.simulatedPath[self.simulatedIndex]
             let newLocation = CLLocation(latitude: newCoord.latitude, longitude: newCoord.longitude)
-            self.userLocation = newLocation
+            
+            DispatchQueue.main.async {
+                self.userLocation = newLocation
+            }
 
             // Calculate distance if we have a previous location
             if let lastLoc = self.lastLocation {
                 let distance = lastLoc.distance(from: newLocation)
-                self.walkingDistance += distance
+                DispatchQueue.main.async {
+                    self.walkingDistance += distance
+                }
                 print("Distance added: \(distance), Total: \(self.walkingDistance)")
             }
 
             // Add to path and update last location
-            self.walkingPath.append(newCoord)
+            DispatchQueue.main.async {
+                self.walkingPath.append(newCoord)
+            }
             self.lastLocation = newLocation
             
             self.simulatedIndex += 1
         }
         
-        // Start separate duration timer
-        durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
             if let walkStart = self.walkStartTime {
-                self.walkingDuration = Date().timeIntervalSince(walkStart)
+                DispatchQueue.main.async {
+                    self.walkingDuration = Date().timeIntervalSince(walkStart)
+                }
             }
         }
     }
-    
+
     func stopWalking() {
         print("🛑 Stopping walking session")
         
-        // Invalidate both timers
-        walkTimer?.invalidate()
-        walkTimer = nil
+        stopAllTimers()
         
-        durationTimer?.invalidate()
-        durationTimer = nil
-
-        // Handle case where user stops before simulation completes
         if simulatedIndex < simulatedPath.count {
             let finalCoord = simulatedPath[simulatedIndex]
             let finalLocation = CLLocation(latitude: finalCoord.latitude, longitude: finalCoord.longitude)
@@ -188,6 +199,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         isWalking = false
         
         print("Walk stopped - Distance: \(walkingDistance), Duration: \(walkingDuration)")
+        print("Timer invalidated: walkTimer=\(walkTimer == nil), durationTimer=\(durationTimer == nil)")
         
         // Update pet's last walked time
         if let userId = Auth.auth().currentUser?.uid {
@@ -195,8 +207,18 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    private func stopAllTimers() {
+        walkTimer?.invalidate()
+        walkTimer = nil
+        
+        durationTimer?.invalidate()
+        durationTimer = nil
+        
+        print("All timers stopped")
+    }
+
     func saveWalkModel() -> WalkingModel {
-        // Check if user is logged in
+
         guard let userId = Auth.auth().currentUser?.uid else {
             print("Error: User not logged in.")
             return WalkingModel()

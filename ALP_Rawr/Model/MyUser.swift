@@ -14,5 +14,4 @@ struct MyUser: Identifiable {
     var email: String = ""
     var password: String = ""
     var friends: [String] = []
-    
 }

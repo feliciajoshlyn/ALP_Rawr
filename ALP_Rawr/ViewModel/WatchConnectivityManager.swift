@@ -25,6 +25,9 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
     
     // Combine cancellables to observe view model changes
     private var cancellables = Set<AnyCancellable>()
+    
+    // Timer for regular walking data updates
+    private var walkingDataTimer: Timer?
 #endif
     
     private override init() {
@@ -57,27 +60,52 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
         // Observe walking state changes
         locationVM?.$isWalking
             .removeDuplicates()
-            .sink { [weak self] _ in
+            .sink { [weak self] isWalking in
                 self?.sendStatusToWatch()
+                
+                // Start or stop the walking data timer based on walking state
+                if isWalking {
+                    self?.startWalkingDataTimer()
+                } else {
+                    self?.stopWalkingDataTimer()
+                }
             }
             .store(in: &cancellables)
         
-        // Observe walking distance and duration for real-time updates
+        // Observe walking distance for immediate updates
         locationVM?.$walkingDistance
             .removeDuplicates()
             .sink { [weak self] distance in
                 print("LocationVM walking distance changed: \(distance)")
-                self?.sendWalkingDataToWatch()
+                // Only send immediate update if not relying on timer
+                if self?.walkingDataTimer == nil {
+                    self?.sendWalkingDataToWatch()
+                }
             }
             .store(in: &cancellables)
+    }
+    
+    @MainActor
+    private func startWalkingDataTimer() {
+        // Stop any existing timer
+        stopWalkingDataTimer()
         
-        locationVM?.$walkingDuration
-            .removeDuplicates()
-            .sink { [weak self] duration in
-                print("LocationVM walking duration changed: \(duration)")
-                self?.sendWalkingDataToWatch()
-            }
-            .store(in: &cancellables)
+        // Send initial data immediately
+        sendWalkingDataToWatch()
+        
+        // Start timer to send updates every second
+        walkingDataTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.sendWalkingDataToWatch()
+        }
+        
+        print("Started walking data timer for Watch synchronization")
+    }
+    
+    @MainActor
+    private func stopWalkingDataTimer() {
+        walkingDataTimer?.invalidate()
+        walkingDataTimer = nil
+        print("Stopped walking data timer")
     }
 #endif
     
@@ -104,7 +132,7 @@ func injectViewModels(
     agePredictionVM: AgePredictionViewModel,
     walkingVM: WalkingViewModel,
     petHomeVM: PetHomeViewModel,
-    diaryVM: DiaryViewModel // <-- add this
+    diaryVM: DiaryViewModel
 ) {
     guard !hasInjected else { return }
     hasInjected = true
@@ -113,9 +141,9 @@ func injectViewModels(
     self.agePredictionVM = agePredictionVM
     self.walkingVM = walkingVM
     self.petHomeVM = petHomeVM
-    self.diaryVM = diaryVM // <-- set it
+    self.diaryVM = diaryVM
 
-//    setupViewModelObservers()
+    setupViewModelObservers()
 }
 #endif
     
@@ -224,6 +252,11 @@ func injectViewModels(
         
         locationVM.stopWalking()
         
+        // Send final walking data to watch
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.sendWalkingDataToWatch()
+        }
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             let walk = locationVM.saveWalkModel()
             print("Saving walk from watch: Distance=\(walk.distance), Duration=\(walk.duration), UserID=\(walk.userId)")
@@ -266,7 +299,7 @@ func injectViewModels(
             "isWalking": locationVM.isWalking
         ]
         
-        print("Sending walking data to watch: \(walkingData)")
+        print("Sending walking data to watch: Distance=\(locationVM.walkingDistance), Duration=\(locationVM.walkingDuration)")
         WCSession.default.sendMessage(walkingData, replyHandler: nil) { error in
             print("Error sending walking data to watch: \(error.localizedDescription)")
         }

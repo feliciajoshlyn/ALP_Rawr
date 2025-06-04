@@ -10,8 +10,7 @@ import WatchConnectivity
 
 struct DiaryWatchView: View {
     @StateObject var diaryWatchViewModel: iOSConnectivity
-    
-    
+        
     var body: some View {
         NavigationStack{
             VStack{

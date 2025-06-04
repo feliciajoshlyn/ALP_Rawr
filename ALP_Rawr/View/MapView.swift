@@ -28,6 +28,7 @@ struct MapView: View {
     @State private var showingParentCheckAlert = false
     @State private var navigateToCamera: Bool = false
     @State private var wasWalking = false // Track previous walking state
+    @State private var walkingStateChangeDebouncer: Timer?
 
     var body: some View {
         NavigationStack{
@@ -74,11 +75,7 @@ struct MapView: View {
                     .disabled(viewModel.authorizationStatus == .denied || viewModel.authorizationStatus == .restricted)
                     
                     Button(viewModel.isWalking ? "Stop Walking" : "Start Walking") {
-                        if viewModel.isWalking {
-                            handleStopWalking()
-                        } else {
-                            handleStartWalking()
-                        }
+                        handleWalkingButtonTap()
                     }
                     .padding()
                     .background(getWalkingButtonColor())
@@ -155,6 +152,17 @@ struct MapView: View {
                         .cornerRadius(8)
                     }
                 }
+                
+                // Debug information (remove in production)
+                if viewModel.isWalking {
+                    Text("Timer Status - Walk: Active, Duration: Active")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                } else {
+                    Text("Timer Status - Walk: Stopped, Duration: Stopped")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                }
             }
             .padding()
             .alert("Authentication Required", isPresented: $showingAlert) {
@@ -185,11 +193,7 @@ struct MapView: View {
                 }
             }
             .onChange(of: viewModel.isWalking) { oldValue, newValue in
-                if wasWalking && !newValue {
-                    print("Walking stopped detected - saving walk data")
-                    saveWalkData()
-                }
-                wasWalking = newValue
+                handleWalkingStateChange(oldValue: oldValue, newValue: newValue)
             }
             .navigationDestination(isPresented: $navigateToCamera) {
                 CameraView(viewModel: agePredictionViewModel)
@@ -200,50 +204,61 @@ struct MapView: View {
             WatchConnectivityManager.shared.locationVM = viewModel
             wasWalking = viewModel.isWalking
         }
+        .onDisappear {
+            // Clean up any pending operations
+            walkingStateChangeDebouncer?.invalidate()
+            walkingStateChangeDebouncer = nil
+        }
     }
     
-    private func handleStartWalking() {
-        guard Auth.auth().currentUser != nil else {
-            alertMessage = "Please log in to track your walks."
-            showingAlert = true
-            return
+    private func handleWalkingButtonTap() {
+        if viewModel.isWalking {
+            print("User tapped Stop Walking")
+            viewModel.stopWalking()
+        } else {
+            // Parent verification check
+            if !agePredictionViewModel.isParentPresent {
+                showingParentCheckAlert = true
+                return
+            }
+            print("User tapped Start Walking")
+            viewModel.startWalking()
         }
-        
-        // Check if parent verification is required
-        if !agePredictionViewModel.isParentPresent {
-            showingParentCheckAlert = true
-            return
-        }
-        
-        // If parent is verified, start walking
-        viewModel.startWalking()
     }
     
-    private func handleStopWalking() {
-        guard Auth.auth().currentUser != nil else {
-            alertMessage = "Please log in to save your walk data."
-            showingAlert = true
-            return
-        }
+    private func handleWalkingStateChange(oldValue: Bool, newValue: Bool) {
+        print("Walking state changed: \(oldValue) -> \(newValue)")
         
-        viewModel.stopWalking()
+        // Cancel any pending debounced calls
+        walkingStateChangeDebouncer?.invalidate()
+        walkingStateChangeDebouncer = nil
+        
+        // Use debouncing to prevent multiple rapid calls
+        walkingStateChangeDebouncer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { _ in
+            DispatchQueue.main.async {
+                if self.wasWalking && !newValue {
+                    print("Walking stopped detected - saving walk data")
+                    self.saveWalkData()
+                }
+                self.wasWalking = newValue
+            }
+        }
     }
     
     private func saveWalkData() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let walk = viewModel.saveWalkModel()
-            print("About to save walk: Distance=\(walk.distance), Duration=\(walk.duration), UserID=\(walk.userId)")
-            walkViewModel.createWalking(walk: walk)
-        }
+        // Remove the delay - save immediately
+        let walk = viewModel.saveWalkModel()
+        print("About to save walk: Distance=\(walk.distance), Duration=\(walk.duration), UserID=\(walk.userId)")
+        walkViewModel.createWalking(walk: walk)
     }
     
     private func getWalkingButtonColor() -> Color {
         if viewModel.isWalking {
             return .red
         } else if agePredictionViewModel.isParentPresent {
-            return .green 
+            return .green
         } else {
-            return .orange // Orange when parent verification is needed
+            return .mint
         }
     }
 
