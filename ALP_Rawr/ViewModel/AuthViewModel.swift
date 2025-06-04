@@ -145,12 +145,14 @@ class AuthViewModel: ObservableObject {
     }
     
 
-<<<<<<< Updated upstream
     func createPetAsync(pet: PetModel) async -> Bool {
         return await withCheckedContinuation { continuation in
             petService.createPet(pet: pet) { success in
                 continuation.resume(returning: success)
-=======
+            }
+        }
+    }
+    
     func signUp() async {
         guard !petName.isEmpty else {
             DispatchQueue.main.async {
@@ -178,7 +180,6 @@ class AuthViewModel: ObservableObject {
                 print("SignUp error: \(error.localizedDescription)")
                 self.falseCredential = true
                 self.isSigningIn = false
->>>>>>> Stashed changes
             }
         }
     }
