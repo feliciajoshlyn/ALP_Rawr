@@ -23,6 +23,8 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
     @Published var searchedFriend: [String: Any]? = nil
     @Published var pet: PetModel = PetModel()
     
+    @Published var isAuthenticated: Bool = false
+    
     var session: WCSession
     
     init(session: WCSession = .default){

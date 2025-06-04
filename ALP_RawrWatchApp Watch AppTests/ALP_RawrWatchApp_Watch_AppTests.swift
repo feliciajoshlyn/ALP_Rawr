@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import ALP_RawrWatchApp_Watch_App
+//@testable import ALP_RawrWatchApp_Watch_App
 
 final class ALP_RawrWatchApp_Watch_AppTests: XCTestCase {
 

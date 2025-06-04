@@ -82,6 +82,8 @@ class AuthViewModel: ObservableObject {
                 self.myUser.email = user.email ?? ""
                 self.myUser.username = user.displayName ?? ""
             }
+            
+            WatchConnectivityManager.shared.sendAuthenticationStatusToWatch()
         } catch {
             DispatchQueue.main.async {
                 self.falseCredential = true

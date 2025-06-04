@@ -22,6 +22,7 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
     var walkingVM: WalkingViewModel?
     var petHomeVM: PetHomeViewModel?
     var diaryVM: DiaryViewModel?
+    var authVM: AuthViewModel?
     
     // Combine cancellables to observe view model changes
     private var cancellables = Set<AnyCancellable>()
@@ -84,6 +85,10 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
     @MainActor
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
         print("Session with watch connected to WatchConnectivityManager")
+        self.authVM?.checkUserSession()
+        if self.authVM?.isSigningIn == true {
+            
+        }
 //        if activationState == .activated && session.isReachable {
 //            self.sendPetToWatch(pet: petHomeVM?.pet ?? PetModel())
 //        }
@@ -104,7 +109,8 @@ func injectViewModels(
     agePredictionVM: AgePredictionViewModel,
     walkingVM: WalkingViewModel,
     petHomeVM: PetHomeViewModel,
-    diaryVM: DiaryViewModel // <-- add this
+    diaryVM: DiaryViewModel, // <-- add this
+    authVM: AuthViewModel
 ) {
     guard !hasInjected else { return }
     hasInjected = true
@@ -114,6 +120,7 @@ func injectViewModels(
     self.walkingVM = walkingVM
     self.petHomeVM = petHomeVM
     self.diaryVM = diaryVM // <-- set it
+    self.authVM = authVM
 
 //    setupViewModelObservers()
 }
@@ -349,7 +356,12 @@ func sendPetToWatch(pet: PetModel) {
     }
 }
 
-    
+@MainActor
+    func sendAuthenticationStatusToWatch(){
+        WCSession.default.sendMessage(["authenticationStatus": true], replyHandler: nil) { error in
+            print("Error sending authentication status: \(error.localizedDescription)")
+        }
+    }
 #endif
 
 }

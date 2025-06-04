@@ -14,6 +14,7 @@ struct SplashScreenView: View {
     @EnvironmentObject var walkViewModel: WalkingViewModel
     @EnvironmentObject var petHomeViewModel: PetHomeViewModel
     @EnvironmentObject var diaryViewModel: DiaryViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
     
     @State var isActive: Bool = false
     
@@ -45,7 +46,8 @@ struct SplashScreenView: View {
                         agePredictionVM: agePredictionViewModel,
                         walkingVM: walkViewModel,
                         petHomeVM: petHomeViewModel,
-                        diaryVM: diaryViewModel
+                        diaryVM: diaryViewModel,
+                        authVM: authViewModel
                     )
                 }
             }

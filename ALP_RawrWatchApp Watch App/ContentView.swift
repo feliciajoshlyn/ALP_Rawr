@@ -27,16 +27,21 @@ struct ContentView: View {
                 }){
                     Text("View Pet")
                 }
+                .disabled(connectivity.isAuthenticated)
+                
                 Button(action: {
                     showDiary = true
                 }){
                     Text("View Diary")
                 }
+                .disabled(connectivity.isAuthenticated)
+                
                 Button(action: {
                     showWalk = true
                 }){
                     Text("Walk the Dog")
                 }
+                .disabled(connectivity.isAuthenticated)
             }
             .navigationDestination(isPresented: $showPet) {
                 PetView(petWatchViewModel: self.connectivity, showPet: $showPet)
