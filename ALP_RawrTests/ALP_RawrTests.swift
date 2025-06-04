@@ -123,6 +123,9 @@ final class ALP_RawrTests: XCTestCase {
         diaryViewModel.fetchCurrentUserFriends(currentUserId: "testId")
         
         XCTAssertEqual(diaryMockService.mockUser?.friends, ["testId3", "testId2"])
+        
+    }
+    
     func testFetchPet(){
         let expectation = self.expectation(description: "Fetching pet")
         
