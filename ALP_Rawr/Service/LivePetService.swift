@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseDatabase
 
-class LivePetService: PetService{
+class LivePetService: PetServiceProtocol {
     private let ref = Database.database().reference().child("pets")
     
     func fetchPet(for userId: String, completion: @escaping (PetModel?) -> Void){

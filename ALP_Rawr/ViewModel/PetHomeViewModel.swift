@@ -18,7 +18,7 @@ class PetHomeViewModel: ObservableObject{
     @Published var hasFetchData: Bool = false
     
     //PetService untuk function-function yang connect ke Realtime DB
-    private let petService: PetService
+    private let petService: PetServiceProtocol
 
     //User untuk menerima dan nanti pakai atribut user yang lagi login
     private var user: User?
@@ -30,7 +30,7 @@ class PetHomeViewModel: ObservableObject{
     //Session untuk connect ke watch
     
     //PetService diinject melalui init
-    init(petService: PetService = LivePetService()) {
+    init(petService: PetServiceProtocol = LivePetService()) {
         self.petService = petService
     }
     

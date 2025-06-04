@@ -7,7 +7,7 @@
 
 import Foundation
 
-class MockPetService: PetService {
+class MockPetService: PetServiceProtocol {
     var fetchPetCalled = false
     var createPetCalled = false
     var savePetCalled = false
