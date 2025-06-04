@@ -9,7 +9,7 @@ import Foundation
 
 struct WalkingModel: Identifiable, Codable {
     var id: String = UUID().uuidString
-    var userId: String = ""
+    var userId: String = "" 
     var startTime: Date = Date()
     var endTime: Date = Date()
     var duration: TimeInterval = 0

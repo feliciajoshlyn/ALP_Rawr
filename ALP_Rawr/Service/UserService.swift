@@ -7,8 +7,9 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
-class UserService{
+class UserService: UserServiceProtocol {
     private let fbFirestore = Firestore.firestore()
     
     func createUserDocument(userId: String, email: String, username: String) async throws {
@@ -20,4 +21,7 @@ class UserService{
         ])
     }
     
+    func signOut() throws {
+        try Auth.auth().signOut()
+    }
 }

@@ -2,7 +2,7 @@
 //  ActiveWalkingView.swift
 //  ALP_RawrWatchApp Watch App
 //
-//  Created by Dave Wirjoatmodjo on 02/06/25.
+//  Updated to use iOS LocationViewModel timer synchronization
 //
 
 import SwiftUI
@@ -10,11 +10,9 @@ import SwiftUI
 struct ActiveWalkingView: View {
     @ObservedObject var connectivity: iOSConnectivity
     @Environment(\.dismiss) private var dismiss
-    @State private var walkingTime: Int = 0
-    @State private var timer: Timer?
     @State private var showingSaveAlert = false
-    @State private var walkDistance: Double = 0.0
-    @State private var walkDuration: TimeInterval = 0.0
+    @State private var animationTimer: Timer?
+    @State private var animationCounter: Int = 0
     
     var body: some View {
         VStack(spacing: 20) {
@@ -33,43 +31,41 @@ struct ActiveWalkingView: View {
                             Animation.easeInOut(duration: 0.6)
                                 .repeatForever()
                                 .delay(Double(index) * 0.2),
-                            value: walkingTime
+                            value: animationCounter
                         )
                 }
             }
             
-            // Timer display
-            Text(formatTime(walkingTime))
+            // Timer display using synchronized iOS data
+            Text(formatTime(Int(connectivity.walkingDuration)))
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
             
-            // Walking stats (if available from iOS)
-            if walkDistance > 0 || walkDuration > 0 {
-                VStack(spacing: 8) {
-                    HStack {
-                        Text("Distance:")
-                            .font(.caption)
-                        Spacer()
-                        Text("\(String(format: "%.1f", walkDistance)) m")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                    }
-                    
-                    HStack {
-                        Text("Duration:")
-                            .font(.caption)
-                        Spacer()
-                        Text(formatTime(Int(walkDuration)))
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                    }
+            // Walking stats synchronized from iOS LocationViewModel
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Distance:")
+                        .font(.caption)
+                    Spacer()
+                    Text("\(String(format: "%.1f", connectivity.walkingDistance)) m")
+                        .font(.caption)
+                        .fontWeight(.semibold)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(8)
+                
+                HStack {
+                    Text("Duration:")
+                        .font(.caption)
+                    Spacer()
+                    Text(formatTime(Int(connectivity.walkingDuration)))
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                }
             }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(8)
             
             Text("Keep walking with your parent!")
                 .font(.caption)
@@ -97,17 +93,17 @@ struct ActiveWalkingView: View {
         }
         .padding()
         .onAppear {
-            startTimer()
+            startAnimationTimer()
             // Start walking on iOS when view appears
             startWalkingOnIOS()
         }
         .onDisappear {
-            stopTimer()
+            stopAnimationTimer()
         }
         .onChange(of: connectivity.isWalking) { _, isWalking in
-            if !isWalking && timer != nil {
+            if !isWalking && animationTimer != nil {
                 // Walking stopped from iOS side
-                stopTimer()
+                stopAnimationTimer()
                 showWalkCompletedAlert()
             }
         }
@@ -120,15 +116,16 @@ struct ActiveWalkingView: View {
         }
     }
     
-    private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            walkingTime += 1
+    // Only for animation purposes - not for timing
+    private func startAnimationTimer() {
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            animationCounter += 1
         }
     }
     
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
+    private func stopAnimationTimer() {
+        animationTimer?.invalidate()
+        animationTimer = nil
     }
     
     private func startWalkingOnIOS() {
@@ -139,7 +136,7 @@ struct ActiveWalkingView: View {
     private func stopWalking() {
         // Send message to iOS to stop walking
         connectivity.sendStopWalkingToiOS()
-        stopTimer()
+        stopAnimationTimer()
         showWalkCompletedAlert()
     }
     
@@ -151,7 +148,7 @@ struct ActiveWalkingView: View {
     }
     
     private func walkingAnimation(for index: Int) -> CGFloat {
-        let phase = (walkingTime + index) % 3
+        let phase = (animationCounter + index) % 3
         return phase == 0 ? 1.5 : 1.0
     }
     

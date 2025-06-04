@@ -31,8 +31,10 @@ struct ALP_RawrApp: App {
         
         let petService = LivePetService()
         let userService = UserService()
-        
-        _authViewModel = StateObject(wrappedValue: AuthViewModel(petService: petService, userService: userService))
+        let authService = AuthService(userService: userService, petService: petService)
+               
+        //        _authViewModel = StateObject(wrappedValue: AuthViewModel(petService: petService, userService: userService))
+        _authViewModel = StateObject(wrappedValue: AuthViewModel(authService: authService))
         _petHomeViewModel = StateObject(wrappedValue: PetHomeViewModel(petService: petService))
     }
     

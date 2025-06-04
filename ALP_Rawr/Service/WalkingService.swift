@@ -9,8 +9,8 @@ import Foundation
 import FirebaseDatabase
 
 class WalkingService {
-    private var dbRef = Database.database().reference().child("walkings")
-    private var petRef = Database.database().reference().child("pets")
+    private var dbRef = Database.database().reference().child("walkings") // buat /walkings
+    private var petRef = Database.database().reference().child("pets") // /pets -> karena mau nyimpen kedalam pet juga
     
     func createWalkTracker(walk: WalkingModel, for userId: String, completion: @escaping (Bool) -> Void) {
         let userWalkRef = dbRef.child(userId).childByAutoId() // generate id baru buat walking
@@ -30,8 +30,6 @@ class WalkingService {
             completion(false)
         }
     }
-    
-    
     
     
     

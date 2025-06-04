@@ -7,181 +7,112 @@
 
 import Foundation
 import FirebaseAuth
-import FirebaseDatabase
 import FirebaseFirestore
 
-@MainActor
 class AuthViewModel: ObservableObject {
     
-    @Published var user: User?
-    @Published var isSigningIn: Bool
-    @Published var myUser: MyUser
-    @Published var falseCredential: Bool
+    @Published var isSigningIn: Bool = false
+    @Published var user: User? = Auth.auth().currentUser
+    @Published var myUser: MyUser = MyUser()
+    @Published var falseCredential: Bool = false
     @Published var petName: String = ""
     
-    private let petService: PetService
-    private let userService: UserService
-    private let db = Firestore.firestore()
+    private let authService: AuthServiceProtocol
+    private let userService: UserServiceProtocol
     
-    init(petService: PetService = LivePetService(), userService: UserService = UserService()){
-        self.user = nil
-        self.isSigningIn = false
-        self.falseCredential = false
-        self.myUser = MyUser()
-        
-        self.petService = petService
+    init(authService: AuthServiceProtocol = AuthService(), userService: UserServiceProtocol = UserService()) {
+        self.authService = authService
         self.userService = userService
         
-        self.checkUserSession()
-        
+        checkUserSession()
     }
     
-    func checkUserSession(){
-        //check jika pernah login, kl login akan return user
-        self.user = Auth.auth().currentUser
-        self.myUser.uid = Auth.auth().currentUser?.uid ?? ""
-        self.myUser.email = Auth.auth().currentUser?.email ?? ""
-        self.myUser.username = Auth.auth().currentUser?.displayName ?? ""
-        self.isSigningIn = self.user != nil
-    }
-    
-    func signOut(){
-        do {
-            try Auth.auth().signOut()
-        }catch {
-            print(error.localizedDescription)
+    func checkUserSession() {
+        if let currentUser = Auth.auth().currentUser {
+            DispatchQueue.main.async {
+                self.user = currentUser
+                self.myUser = MyUser(
+                    uid: currentUser.uid,
+                    username: currentUser.displayName ?? "",
+                    email: currentUser.email ?? "",
+                    password: "",
+                    friends: []
+                )
+                self.isSigningIn = true
+            }
+        } else {
+            DispatchQueue.main.async {
+                self.user = nil
+                self.myUser = MyUser()
+                self.isSigningIn = false
+            }
         }
     }
-    
+
+    func signOut() {
+        do {
+            try userService.signOut()
+            DispatchQueue.main.async {
+                self.user = nil
+                self.myUser = MyUser()
+                self.isSigningIn = false
+            }
+        } catch {
+            print("Sign out error: \(error.localizedDescription)")
+        }
+    }
+
     func signIn() async {
         do {
-            let result = try await Auth.auth().signIn(withEmail: myUser.email, password: myUser.password)
-            let user = result.user
-
-            //access firestore
-            let db = Firestore.firestore()
-            //get firestore sesuai dengan nama uid like users/uid spt id
-            let userRef = db.collection("users").document(user.uid)
-            //wait so they get the document
-            let snapshot = try await userRef.getDocument()
-            
-            //if missing
-            if !snapshot.exists {
-                //set data utk user uid tersebut
-                try await userRef.setData([
-                    "email": user.email ?? "",
-                    "username": myUser.username,
-                    "friends": []
-                ])
-            }
-
-            DispatchQueue.main.async {
-                self.falseCredential = false
-                self.user = user
-                self.myUser.uid = user.uid
-                self.myUser.email = user.email ?? ""
-                self.myUser.username = user.displayName ?? ""
-            }
-        } catch {
-            DispatchQueue.main.async {
-                self.falseCredential = true
-            }
-        }
-    }
-    
-    func signUp() async {
-        do {
-            let result = try await Auth.auth().createUser(withEmail: myUser.email, password: myUser.password)
-            let user = result.user
-            
-            let changeRequest = user.createProfileChangeRequest()
-            changeRequest.displayName = myUser.username
-            try await changeRequest.commitChanges()
-            print("✅ Updated displayName to \(myUser.username)")
-            
-            self.myUser.uid = user.uid
-            print("User created successfully with UID: \(user.uid)")
-            
-//             Create Firestore user document
-//            let db = Firestore.firestore()
-//            let userRef = db.collection("users").document(user.uid)
-//            try await userRef.setData([
-//                "email": user.email ?? "",
-//                "username": myUser.username,
-//                "friends": []
-//            ])
-            
-            try await userService.createUserDocument(
-                userId: user.uid,
+            let signedInUser = try await authService.signIn(
                 email: myUser.email,
+                password: myUser.password,
                 username: myUser.username
             )
-            print("Firestore user document created")
-            
-            // Create default pet - AWAIT the async operation
-            let defaultPet = makeDefaultPet(userId: user.uid, petName: self.petName) // Fixed: use myUser.petName
-            print("Creating default pet: \(defaultPet.name) for user: \(user.uid)")
-            
-            // Use async/await instead of completion handler for better error handling
-            let petCreated = await createPetAsync(pet: defaultPet)
-            
-            await MainActor.run {
-                if petCreated {
-                    print("Default pet created successfully in Firebase")
-                    self.falseCredential = false
-                    self.user = user
-                } else {
-                    print("Failed to create default pet in Firebase")
-                    self.falseCredential = true
-                }
+            DispatchQueue.main.async {
+                self.falseCredential = false
+                self.myUser = signedInUser
+                self.user = Auth.auth().currentUser
+                self.isSigningIn = true
             }
-            
         } catch {
-            print("SignUp error: \(error.localizedDescription)")
-            await MainActor.run {
+            DispatchQueue.main.async {
+                print("SignIn error: \(error.localizedDescription)")
+                self.falseCredential = true
+                self.isSigningIn = false
+            }
+        }
+    }
+
+    func signUp() async {
+        guard !petName.isEmpty else {
+            DispatchQueue.main.async {
+                print("Pet name is required for sign up")
                 self.falseCredential = true
             }
+            return
         }
-    }
-    
 
-    func createPetAsync(pet: PetModel) async -> Bool {
-        return await withCheckedContinuation { continuation in
-            petService.createPet(pet: pet) { success in
-                continuation.resume(returning: success)
+        do {
+            let signedUpUser = try await authService.signUp(
+                email: myUser.email,
+                password: myUser.password,
+                username: myUser.username,
+                petName: petName
+            )
+            DispatchQueue.main.async {
+                self.falseCredential = false
+                self.myUser = signedUpUser
+                self.user = Auth.auth().currentUser
+                self.isSigningIn = true
+            }
+        } catch {
+            DispatchQueue.main.async {
+                print("SignUp error: \(error.localizedDescription)")
+                self.falseCredential = true
+                self.isSigningIn = false
             }
         }
     }
-    
-    func makeDefaultPet(userId: String, petName: String) -> PetModel {
-        let now = Date()
-        
-        return PetModel(
-            name: petName,
-            hp: 100.0,
-            hunger: 100.0,
-            isHungry: false,
-            bond: 0.0,
-            lastFed: now,
-            lastPetted: now,
-            lastWalked: now,
-            lastShower: now,
-            lastChecked: now,
-            currMood: "Happy",
-            emotions: [
-                "Happy":PetEmotionModel(
-                    name: "Happy",
-                    level: 100.0,
-                    limit: 40.0,
-                    priority: 1,
-                    icon: "happybadge"
-                ),
-                "Sad":PetEmotionModel(name: "Sad", level: 0.0, limit: 50.0, priority: 2, icon: "sadbadge"),
-                "Angry":PetEmotionModel(name: "Angry", level: 0.0, limit: 70.0, priority: 3, icon: "angrybadge"),
-                "Bored":PetEmotionModel(name: "Bored", level: 0.0, limit: 60.0, priority: 4, icon: "boredbadge"),
-                "Fear":PetEmotionModel(name: "Fear", level: 0.0, limit: 80.0, priority: 5, icon: "fearbadge")
-            ],
-            userId: userId
-        )
-    }
+
 }

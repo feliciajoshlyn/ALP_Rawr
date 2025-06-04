@@ -10,5 +10,5 @@ import CoreLocation
 
 struct LocationModel: Identifiable {
     let id = UUID()
-    let coordinate: CLLocationCoordinate2D
+    let coordinate: CLLocationCoordinate2D // buat lokasi latitude dan longitude
 }
