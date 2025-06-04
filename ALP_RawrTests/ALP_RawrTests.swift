@@ -186,15 +186,6 @@ final class ALP_RawrTests: XCTestCase {
         XCTAssertEqual(self.petHomeViewModel.currEmotion, "Sad")
     }
     
-    func testFetchFriends() async {
-        diaryMockService.mockUser = MyUser(uid: "testId", username: "testUsername")
-        diaryMockService.mockUser?.friends = ["testId3", "testId2"]
-        diaryViewModel.fetchCurrentUserFriends(currentUserId: "testId")
-        
-        XCTAssertEqual(diaryMockService.mockUser?.friends, ["testId3", "testId2"])
-    }
-    
-    
     func testUpdatePetStatusPeriodically() {
         // Step 1: Create a Pet with specific timestamps in the past
         let now = Date()

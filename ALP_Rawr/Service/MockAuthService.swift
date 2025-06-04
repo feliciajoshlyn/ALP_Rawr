@@ -42,7 +42,7 @@ class MockAuthService: AuthServiceProtocol {
         if shouldReturnSuccess {
             if let existingUser = mockUsers.first(where: { $0.email == email }) {
                 currentUser = existingUser
-                return existingUser
+                return currentUser!
             } else {
                 // Create a mock user for testing if not found
                 let mockUser = MyUser(

@@ -69,18 +69,18 @@ class AuthViewModel: ObservableObject {
                 password: myUser.password,
                 username: myUser.username
             )
-            DispatchQueue.main.async {
+//            DispatchQueue.main.async {
                 self.falseCredential = false
                 self.myUser = signedInUser
                 self.user = Auth.auth().currentUser
                 self.isSigningIn = true
-            }
+//            }
         } catch {
-            DispatchQueue.main.async {
+//            DispatchQueue.main.async {
                 print("SignIn error: \(error.localizedDescription)")
                 self.falseCredential = true
                 self.isSigningIn = false
-            }
+//            }
         }
     }
 
@@ -100,12 +100,12 @@ class AuthViewModel: ObservableObject {
                 username: myUser.username,
                 petName: petName
             )
-            DispatchQueue.main.async {
+//            DispatchQueue.main.async {
                 self.falseCredential = false
                 self.myUser = signedUpUser
                 self.user = Auth.auth().currentUser
                 self.isSigningIn = true
-            }
+//            }
         } catch {
             DispatchQueue.main.async {
                 print("SignUp error: \(error.localizedDescription)")
