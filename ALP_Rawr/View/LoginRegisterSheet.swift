@@ -23,9 +23,6 @@ struct LoginRegisterSheet: View {
         }
     }
     
-    // Animation namespace for smooth transitions
-    @Namespace private var formTransition
-    
     var body: some View {
         ZStack {
             // Background gradient
