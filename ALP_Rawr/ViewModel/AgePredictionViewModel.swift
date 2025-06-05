@@ -13,7 +13,7 @@ import Combine
 
 @MainActor
 class AgePredictionViewModel: ObservableObject {
-    // MARK: - Published Properties
+    
     @Published var capturedImage: UIImage?
     @Published var predictionResult: String = "No prediction yet"
     @Published var isLoading: Bool = false
@@ -21,16 +21,16 @@ class AgePredictionViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isParentThere: Bool = false
     
-    // MARK: - Private Properties
-    private var visionModel: VNCoreMLModel?
-    private var ageClassifierInstance: AgeClassifier? // Reference to the generated Core ML model class
     
-    // MARK: - Initialization
+    private var visionModel: VNCoreMLModel?
+    private var ageClassifierInstance: AgeClassifier?
+    
+    
     init() {
         loadModel()
     }
     
-    // MARK: - Model Loading
+
     private func loadModel() {
         if isLoading { return }
         isLoading = true
@@ -38,13 +38,11 @@ class AgePredictionViewModel: ObservableObject {
         
         Task(priority: .userInitiated) {
             do {
-                // Xcode generates the 'AgeClassifier' class from 'AgeClassifier.mlpackage'.
-                let config = MLModelConfiguration()
+                let config = MLModelConfiguration() // config untuk parameter ML nya
                 let classifier = try AgeClassifier(configuration: config)
                 self.ageClassifierInstance = classifier
                 
-                // Vision uses this VNCoreMLModel to perform requests.
-                let vnModel = try VNCoreMLModel(for: classifier.model)
+                let vnModel = try VNCoreMLModel(for: classifier.model) // karena ini yang dipake utk masuk ke vision
                 
                 self.visionModel = vnModel
                 self.isLoading = false
@@ -59,12 +57,11 @@ class AgePredictionViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Camera Actions
     func openCamera() {
         if visionModel == nil && !isLoading {
-            loadModel()
+            loadModel() // ngeload model dulu
         }
-        showCamera = true
+        showCamera = true // toggle boolean showCamera
     }
     
     func handleCapturedImage(_ image: UIImage) {
@@ -72,27 +69,28 @@ class AgePredictionViewModel: ObservableObject {
         predictAge(from: image)
     }
     
-    // MARK: - Age Prediction
+    // untuk predict, terima image, and return result disini
     func predictAge(from image: UIImage) {
-        guard let visionModel = self.visionModel else {
+        guard let visionModel = self.visionModel else { // pake variable visionModel yang sudah diisi vnModel
             self.errorMessage = "Model not loaded. Please wait or try reloading."
             self.predictionResult = "Error: Model not ready."
             if !isLoading { loadModel() }
             return
-        }
+        } // guard supaya each of the variable harus keisi dulu, semisal fail maka early exit
         
         guard let cgImage = image.cgImage else {
             self.errorMessage = "Invalid image format: Could not convert UIImage to CGImage."
             self.predictionResult = "Error: Invalid image."
             return
-        }
+        } // ini untuk isi image sama cgImage -> format image yang diinput user
         
         self.isLoading = true
         self.errorMessage = nil
         self.predictionResult = "Predicting..."
         
-        Task(priority: .userInitiated) {
-            let request = VNCoreMLRequest(model: visionModel) { [weak self] request, error in
+        
+        Task(priority: .userInitiated) { // async tapi biar dianggap jadi main thread di background
+            let request = VNCoreMLRequest(model: visionModel) { [weak self] request, error in //Prevents memory leaks makanya buat self baru
                 Task { @MainActor in // Ensure UI updates are on the main actor
                     guard let self = self else { return }
                     self.isLoading = false
@@ -104,16 +102,16 @@ class AgePredictionViewModel: ObservableObject {
                         return
                     }
                     
-                    // Process results: VNClassificationObservation contains 'identifier' (classLabel)
-                    // and 'confidence' due to ClassifierConfig used during .mlmodel conversion.
+                    // ini untuk masukin result classification ke observations variable
                     guard let observations = request.results as? [VNClassificationObservation],
-                          let topObservation = observations.first else {
+                          let topObservation = observations.first else { // untuk cari prediction paling pertama ketemu dan cocok
                         self.errorMessage = "Could not process prediction results or no results returned."
                         self.predictionResult = "No prediction available."
                         print("Failed to get VNClassificationObservation results or results are empty.")
                         return
                     }
                     
+                    // masukin hasil topObersvation ke predictionResult
                     self.predictionResult = self.formatPredictionResult(
                         identifier: topObservation.identifier
                     )
@@ -122,16 +120,13 @@ class AgePredictionViewModel: ObservableObject {
                 }
             }
             
-            // Vision handles resizing/cropping. Normalization (scale/bias) is part of the Core ML model.
-            request.imageCropAndScaleOption = .centerCrop
+            request.imageCropAndScaleOption = .centerCrop // supaya vision bisa handle resizing/cropping
             
-            // Optionally pass image orientation if known, though Vision often infers it.
-            // let imageOrientation = CGImagePropertyOrientation(image.imageOrientation)
-            // let handler = VNImageRequestHandler(cgImage: cgImage, orientation: imageOrientation)
+            // terima request image
             let handler = VNImageRequestHandler(cgImage: cgImage)
             
             do {
-                try handler.perform([request])
+                try handler.perform([request]) // masukin semua request deh
             } catch {
                 Task { @MainActor in
                     self.isLoading = false
@@ -143,12 +138,13 @@ class AgePredictionViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Helper Methods
     private func formatPredictionResult(identifier: String) -> String {
         //        let confidencePercentage = confidence * 100
         return identifier
     }
     
+    
+    // variable yang tentukan nanti apakah parent sudah verify apa blm
     var isParentPresent: Bool {
         let result = predictionResult == "20-29" || predictionResult == "30-39" ||
                predictionResult == "40-49" || predictionResult == "50-59" ||
@@ -157,6 +153,7 @@ class AgePredictionViewModel: ObservableObject {
         print("DEBUG - predictionResult: '\(predictionResult)', isParentPresent: \(result)")
         return result
     }
+    
     
     func resetPrediction() {
         capturedImage = nil
@@ -174,19 +171,3 @@ class AgePredictionViewModel: ObservableObject {
     }
 }
 
-// Optional helper for explicit image orientation (Vision usually infers this)
-// extension CGImagePropertyOrientation {
-//     init(_ uiImageOrientation: UIImage.Orientation) {
-//         switch uiImageOrientation {
-//             case .up: self = .up
-//             case .down: self = .down
-//             case .left: self = .left
-//             case .right: self = .right
-//             case .upMirrored: self = .upMirrored
-//             case .downMirrored: self = .downMirrored
-//             case .leftMirrored: self = .leftMirrored
-//             case .rightMirrored: self = .rightMirrored
-//             @unknown default: self = .up
-//         }
-//     }
-// }

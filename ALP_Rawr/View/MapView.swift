@@ -15,7 +15,8 @@ struct MapView: View {
     @EnvironmentObject var agePredictionViewModel: AgePredictionViewModel
     
     @State private var userLocationWrapper: LocationModel? = nil
-    @State private var cameraPosition: MapCameraPosition = .region(
+    
+    @State private var currentPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: -7.28352, longitude: 112.63169),
             span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
@@ -37,12 +38,14 @@ struct MapView: View {
                     .font(.title3)
                     .fontWeight(.bold)
                 
-                Map(position: $cameraPosition) {
+                // bikin mapnya
+                Map(position: $currentPosition) {
                     if let userLocationWrapper = userLocationWrapper {
                         Marker("You are here", coordinate: userLocationWrapper.coordinate)
                             .tint(.blue)
                     }
                     
+                    // kalo misal ada isi di walkingPath, nanti ditambah line nya pake mapployline
                     if !viewModel.walkingPath.isEmpty {
                         MapPolyline(coordinates: viewModel.walkingPath)
                             .stroke(.red, lineWidth: 3)
@@ -50,8 +53,8 @@ struct MapView: View {
                 }.frame(maxHeight: .infinity)
                 .mapStyle(.standard)
                 .mapControls {
-                    MapUserLocationButton()
-                    MapCompass()
+                    MapUserLocationButton() //
+                    MapCompass() // compas diatas
                 }
                 .onMapCameraChange(frequency: .continuous) { context in
                     currentRegion = context.region
@@ -66,14 +69,15 @@ struct MapView: View {
                 
                 HStack(spacing: 15) {
                     Button("Find My Location") {
-                        viewModel.requestLocation()
+                        viewModel.requestLocation() // check aja dulu sudah acc atau tidak, kalo sudah nanti baru requestLocation beneran
                     }
                     .padding()
                     .background(isZoomedIn ? Color.green : Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     .disabled(viewModel.authorizationStatus == .denied || viewModel.authorizationStatus == .restricted)
-                    
+                
+                    // functionnya dibawah
                     Button(viewModel.isWalking ? "Stop Walking" : "Start Walking") {
                         handleWalkingButtonTap()
                     }
@@ -112,6 +116,7 @@ struct MapView: View {
                 }
                 
                 VStack(spacing: 10) {
+                    // untuk munculin box walking
                     if viewModel.isWalking || viewModel.walkingDistance > 0 {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Walking Stats:")
@@ -152,17 +157,6 @@ struct MapView: View {
                         .cornerRadius(8)
                     }
                 }
-                
-                // Debug information (remove in production)
-                if viewModel.isWalking {
-                    Text("Timer Status - Walk: Active, Duration: Active")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                } else {
-                    Text("Timer Status - Walk: Stopped, Duration: Stopped")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                }
             }
             .padding()
             .alert("Authentication Required", isPresented: $showingAlert) {
@@ -183,7 +177,7 @@ struct MapView: View {
                     let coord = loc.coordinate
                     userLocationWrapper = LocationModel(coordinate: coord)
                     withAnimation(.easeInOut(duration: 1.0)) {
-                        cameraPosition = .region(
+                        currentPosition = .region(
                             MKCoordinateRegion(
                                 center: coord,
                                 span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
@@ -211,24 +205,22 @@ struct MapView: View {
         }
     }
     
+    // check dulu state nya lagi stop atau start
     private func handleWalkingButtonTap() {
         if viewModel.isWalking {
             print("User tapped Stop Walking")
             viewModel.stopWalking()
         } else {
-            // Parent verification check
+            // toggle boolean showingParentCheckAlert jdi true kalo masi false, kalo sudah true langsung start walking
             if !agePredictionViewModel.isParentPresent {
                 showingParentCheckAlert = true
                 return
             }
-            print("User tapped Start Walking")
             viewModel.startWalking()
         }
     }
     
     private func handleWalkingStateChange(oldValue: Bool, newValue: Bool) {
-        print("Walking state changed: \(oldValue) -> \(newValue)")
-        
         // Cancel any pending debounced calls
         walkingStateChangeDebouncer?.invalidate()
         walkingStateChangeDebouncer = nil
@@ -253,12 +245,12 @@ struct MapView: View {
     }
     
     private func getWalkingButtonColor() -> Color {
-        if viewModel.isWalking {
+        if viewModel.isWalking { // kalo true return red
             return .red
-        } else if agePredictionViewModel.isParentPresent {
+        } else if agePredictionViewModel.isParentPresent { // kalo parentPresent true maka kasih green
             return .green
         } else {
-            return .mint
+            return .mint // ini samsek isWalking false dan isParentPresent false
         }
     }
 

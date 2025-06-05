@@ -14,8 +14,8 @@ import FirebaseDatabase
 class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     
-    @Published var userLocation: CLLocation?
-    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    @Published var userLocation: CLLocation? // track current user location
+    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined // check user sudah allow location atau blm
     @Published var isWalking: Bool = false
     @Published var walkingPath: [CLLocationCoordinate2D] = []
     @Published var walkingDistance: Double = 0.0
@@ -27,7 +27,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var endTime: Date?
     @Published var walkStartTime: Date?
     
-    // For simulation
+    // untuk simulasi, jadi user fake geraknya per index
     private var simulatedIndex = 0
     private let simulatedPath: [CLLocationCoordinate2D] = [
         CLLocationCoordinate2D(latitude: -7.28352, longitude: 112.63169),
@@ -49,18 +49,20 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         authorizationStatus = manager.authorizationStatus
     }
     
+    // ini untuk update pet punya waktu lastWalked
     func updatePetLastWalkedById(id: String) {
         let dbRef = Database.database().reference().child("pets")
         
         dbRef.observeSingleEvent(of: .value) { snapshot in
-            guard let allPets = snapshot.value as? [String: [String: Any]] else {
+            guard let allPets = snapshot.value as? [String: [String: Any]] else { // cari semua data pet
                 print("Failed to cast pet data or no pets found")
                 return
             }
             
             var petFound = false
+            // looping untuk semua petData yang ada di dbRef
             for (petId, petData) in allPets {
-                if let userId = petData["userId"] as? String, userId == id {
+                if let userId = petData["userId"] as? String, userId == id { // masuk ke /pet yang userId = id
                     petFound = true
                     let lastWalkedString = ISO8601DateFormatter().string(from: self.endTime ?? Date())
                     dbRef.child(petId).child("lastWalked").setValue(lastWalkedString) { error, _ in
@@ -76,45 +78,22 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             
             if !petFound {
                 print("Pet with userId: \(id) not found. Creating a default pet entry.")
-                // Optionally create a default pet entry or handle this case
-                self.createDefaultPetIfNeeded(userId: id)
             }
         }
     }
     
-    private func createDefaultPetIfNeeded(userId: String) {
-        let dbRef = Database.database().reference().child("pets")
-        let newPetId = dbRef.childByAutoId().key ?? UUID().uuidString
-        
-        let defaultPetData: [String: Any] = [
-            "userId": userId,
-            "name": "Default Pet",
-            "lastWalked": ISO8601DateFormatter().string(from: Date()),
-            "createdAt": ISO8601DateFormatter().string(from: Date())
-        ]
-        
-        dbRef.child(newPetId).setValue(defaultPetData) { error, _ in
-            if let error = error {
-                print("Failed to create default pet: \(error.localizedDescription)")
-            } else {
-                print("Created default pet for user: \(userId)")
-            }
-        }
-    }
 
     func startWalking() {
-        print("🚶 Starting walking session")
         
         // Stop any existing timers first
-        stopAllTimers()
+        stopAllTimers() // cuma buat reset
         
-        walkingPath = []
+        walkingPath = [] // kosongin path nya karena mau diisi yang baru
         walkingDistance = 0
         walkingDuration = 0
         isWalking = true
         simulatedIndex = 0
         
-        // Use consistent time reference
         let currentTime = Date()
         startTime = currentTime
         walkStartTime = currentTime
@@ -126,6 +105,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         walkTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
+            // ini karena pake array jadi terbatas index nya, semisal sudah nilainya sama otomatis stopWalking
             guard self.simulatedIndex < self.simulatedPath.count else {
                 DispatchQueue.main.async {
                     self.stopWalking()
@@ -133,14 +113,15 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 return
             }
 
-            let newCoord = self.simulatedPath[self.simulatedIndex]
-            let newLocation = CLLocation(latitude: newCoord.latitude, longitude: newCoord.longitude)
+            let newCoord = self.simulatedPath[self.simulatedIndex] // newCoord untuk track current user location dengan index simulated jadi index dari array
+            let newLocation = CLLocation(latitude: newCoord.latitude, longitude: newCoord.longitude) // update latitude dan longitude nya terus
             
+            // update newLocation jadi userLocation
             DispatchQueue.main.async {
                 self.userLocation = newLocation
             }
 
-            // Calculate distance if we have a previous location
+            // untuk hitung distance nya
             if let lastLoc = self.lastLocation {
                 let distance = lastLoc.distance(from: newLocation)
                 DispatchQueue.main.async {
@@ -155,12 +136,13 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             }
             self.lastLocation = newLocation
             
-            self.simulatedIndex += 1
+            self.simulatedIndex += 1 // tiap 1 detik indextambah
         }
         
         durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
+            // untuk update durasi tiap waktu 0.1 detik
             if let walkStart = self.walkStartTime {
                 DispatchQueue.main.async {
                     self.walkingDuration = Date().timeIntervalSince(walkStart)
@@ -170,15 +152,14 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func stopWalking() {
-        print("🛑 Stopping walking session")
         
-        stopAllTimers()
+        stopAllTimers() // stop semua timer
         
         if simulatedIndex < simulatedPath.count {
             let finalCoord = simulatedPath[simulatedIndex]
             let finalLocation = CLLocation(latitude: finalCoord.latitude, longitude: finalCoord.longitude)
             
-            // Add final distance calculation
+            // masukin semua calculation
             if let lastLoc = lastLocation {
                 let distance = lastLoc.distance(from: finalLocation)
                 walkingDistance += distance
@@ -190,7 +171,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             lastLocation = finalLocation
         }
 
-        // Final duration calculation
+        
         if let walkStart = walkStartTime {
             walkingDuration = Date().timeIntervalSince(walkStart)
         }
@@ -208,8 +189,8 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     private func stopAllTimers() {
-        walkTimer?.invalidate()
-        walkTimer = nil
+        walkTimer?.invalidate() // utk cancel
+        walkTimer = nil // utk kasih isi nya = nil
         
         durationTimer?.invalidate()
         durationTimer = nil
@@ -245,6 +226,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         return walkModel
     }
 
+    // nah ini yang minta request authorization untuk location user di device
     func requestLocation() {
         switch authorizationStatus {
         case .notDetermined:
@@ -256,6 +238,7 @@ class LocationViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
+    //
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
         userLocation = location

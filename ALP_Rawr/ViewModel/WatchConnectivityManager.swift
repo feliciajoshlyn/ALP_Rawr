@@ -9,11 +9,11 @@ import Foundation
 import WatchConnectivity
 import Combine
 
+// class ini bertugas jadi connectivity
 class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, ObservableObject {
     
     static let shared = WatchConnectivityManager()
     
-    // Published property to trigger navigation
     @Published var shouldShowCameraView = false
     
 #if os(iOS)

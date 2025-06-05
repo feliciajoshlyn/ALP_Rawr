@@ -22,7 +22,7 @@ struct CameraView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                // Header Section
+ 
                 VStack(spacing: 8) {
                     Image(systemName: "figure.2.and.child.holdinghands")
                         .font(.system(size: 40))
@@ -70,7 +70,7 @@ struct CameraView: View {
                                     .fontWeight(.medium)
                             }
                         }
-                    } else {
+                    } else { // buat placeholder kalo blm ada foto
                         VStack(spacing: 16) {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(
@@ -92,7 +92,7 @@ struct CameraView: View {
                                                 .font(.headline)
                                                 .fontWeight(.semibold)
                                             
-                                            Text("Select a picture with both you and your parent")
+                                            Text("Select a picture of your parent")
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                                 .multilineTextAlignment(.center)
@@ -110,13 +110,13 @@ struct CameraView: View {
                 
                 // Analysis Result Section
                 VStack(spacing: 12) {
-                    if viewModel.isLoading {
+                    if viewModel.isLoading { // buat tunjukin loading view nya gmn
                         VStack(spacing: 8) {
                             HStack {
                                 ProgressView()
                                     .scaleEffect(1.2)
                                     .progressViewStyle(CircularProgressViewStyle(tint: .orange))
-                                Text("🔍 Checking for parent...")
+                                Text("Checking for parent...")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
                             }
@@ -130,7 +130,8 @@ struct CameraView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(Color.orange.opacity(0.1))
                         )
-                    } else if !viewModel.predictionResult.isEmpty && viewModel.predictionResult != "No prediction yet" {
+                    } else if !viewModel.predictionResult.isEmpty && viewModel.predictionResult != "No prediction yet" { // kalo sudah selesai loading dan predictionresult sudah ada isi
+                        
                         let parentPresent = viewModel.isParentPresent
                         
                         VStack(spacing: 8) {
@@ -145,7 +146,7 @@ struct CameraView: View {
                                     .multilineTextAlignment(.center)
                             }
                             
-                            if parentPresent {
+                            if parentPresent { // kalo true maka jadi warna ijo
                                 VStack(spacing: 4) {
                                     Text("Great! You can now go on a walk!")
                                         .font(.subheadline)
@@ -157,11 +158,11 @@ struct CameraView: View {
                                         .foregroundColor(.green)
                                         .multilineTextAlignment(.center)
                                 }
-                            } else {
+                            } else { // kalo false dikasih tunjuk
                                 VStack(spacing: 4) {
                                     Text("Please take a photo with your parent or guardian")
                                         .font(.subheadline)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(.red)
                                         .fontWeight(.medium)
                                     
                                     Text("Age detected: \(viewModel.predictionResult)")
@@ -205,7 +206,7 @@ struct CameraView: View {
                 VStack(spacing: 12) {
                     // Primary Camera Button
                     Button(action: {
-                        viewModel.openCamera()
+                        viewModel.openCamera() // untuk load model dan toggle camera boolean
                     }) {
                         HStack(spacing: 8) {
                             Image(systemName: "camera.fill")
@@ -231,6 +232,7 @@ struct CameraView: View {
                     .animation(.easeInOut(duration: 0.2), value: viewModel.canPredict)
                     
                     HStack(spacing: 12) {
+                        //
                         if viewModel.capturedImage != nil {
                             Button(action: {
                                 viewModel.resetPrediction()
@@ -249,7 +251,7 @@ struct CameraView: View {
                             }
                         }
                         
-                        if !viewModel.predictionResult.isEmpty && viewModel.predictionResult != "No prediction yet" && viewModel.isParentPresent {
+                        if !viewModel.predictionResult.isEmpty && viewModel.predictionResult != "No prediction yet" && viewModel.isParentPresent { // semisal sudah parent verified, maka nanti status nya disend ke watch dan navigate auto ke map view
                             Button(action: {
                                 watchConnectivity.sendStatusToWatch()
                                 navigateToMapView = true
@@ -310,7 +312,7 @@ struct CameraView: View {
         }
         .alert("Loading AI Model", isPresented: .constant(viewModel.isLoading && !viewModel.hasValidModel)) {
         } message: {
-            Text("Getting ready to check for parents... Please wait! 🤖")
+            Text("Getting ready to check for parents... Please wait!")
         }
         .onChange(of: viewModel.isParentPresent) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -326,48 +328,6 @@ struct CameraView: View {
     }
 }
 
-// MARK: - Enhanced Image Picker
-struct ImagePicker: UIViewControllerRepresentable {
-    @Binding var image: UIImage?
-    @Environment(\.dismiss) private var dismiss
-    
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
-        
-        // Always use photo library for simulator compatibility
-        picker.sourceType = .photoLibrary
-        picker.allowsEditing = true
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: ImagePicker
-        
-        init(_ parent: ImagePicker) {
-            self.parent = parent
-        }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let editedImage = info[.editedImage] as? UIImage {
-                parent.image = editedImage
-            } else if let originalImage = info[.originalImage] as? UIImage {
-                parent.image = originalImage
-            }
-            parent.dismiss()
-        }
-        
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.dismiss()
-        }
-    }
-}
 
 #Preview {
     //    CameraView()
