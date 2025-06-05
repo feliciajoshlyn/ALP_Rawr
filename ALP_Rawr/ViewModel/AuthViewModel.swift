@@ -107,11 +107,11 @@ class AuthViewModel: ObservableObject {
                 self.isSigningIn = true
 //            }
         } catch {
-            DispatchQueue.main.async {
+//            DispatchQueue.main.async {
                 print("SignUp error: \(error.localizedDescription)")
                 self.falseCredential = true
                 self.isSigningIn = false
-            }
+//            }
         }
     }
 

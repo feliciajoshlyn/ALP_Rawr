@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol PetService {
+protocol PetServiceProtocol {
     func fetchPet(for userId: String, completion: @escaping (PetModel?) -> Void)
     func createPet(pet: PetModel, completion: @escaping (Bool) -> Void)
     func savePet(_ pet: PetModel, for userId: String, completion: @escaping (Bool) -> Void)

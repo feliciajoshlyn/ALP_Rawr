@@ -74,7 +74,11 @@ struct ActiveWalkingView: View {
             
             // Stop walking button
             Button("Stop Walking") {
-                stopWalking()
+                connectivity.sendStopWalkingToiOS()
+                stopAnimationTimer()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showingSaveAlert = true
+                }
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
@@ -82,9 +86,8 @@ struct ActiveWalkingView: View {
             
             // Back button
             Button("Back to Main") {
-                // If still walking, stop first
                 if connectivity.isWalking {
-                    stopWalking()
+                    connectivity.sendStopWalkingToiOS()
                 }
                 dismiss()
             }
@@ -94,17 +97,17 @@ struct ActiveWalkingView: View {
         .padding()
         .onAppear {
             startAnimationTimer()
-            // Start walking on iOS when view appears
-            startWalkingOnIOS()
+            connectivity.sendWalkToiOS()
         }
         .onDisappear {
             stopAnimationTimer()
         }
         .onChange(of: connectivity.isWalking) { _, isWalking in
             if !isWalking && animationTimer != nil {
-                // Walking stopped from iOS side
                 stopAnimationTimer()
-                showWalkCompletedAlert()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showingSaveAlert = true
+                }
             }
         }
         .alert("Walk Completed! 🎉", isPresented: $showingSaveAlert) {
@@ -116,35 +119,17 @@ struct ActiveWalkingView: View {
         }
     }
     
-    // Only for animation purposes - not for timing
+    // cuma buat animasi start timer
     private func startAnimationTimer() {
         animationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
             animationCounter += 1
         }
     }
     
+    // animasinya dimatiin
     private func stopAnimationTimer() {
         animationTimer?.invalidate()
         animationTimer = nil
-    }
-    
-    private func startWalkingOnIOS() {
-        // Send message to iOS to start walking
-        connectivity.sendWalkToiOS()
-    }
-    
-    private func stopWalking() {
-        // Send message to iOS to stop walking
-        connectivity.sendStopWalkingToiOS()
-        stopAnimationTimer()
-        showWalkCompletedAlert()
-    }
-    
-    private func showWalkCompletedAlert() {
-        // Add a small delay to ensure data is processed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            showingSaveAlert = true
-        }
     }
     
     private func walkingAnimation(for index: Int) -> CGFloat {

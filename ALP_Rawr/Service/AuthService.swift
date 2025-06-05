@@ -12,9 +12,9 @@ import FirebaseFirestore
 class AuthService: AuthServiceProtocol {
     private let db = Firestore.firestore()
     private let userService: UserServiceProtocol
-    private let petService: PetService
+    private let petService: PetServiceProtocol
     
-    init(userService: UserServiceProtocol = UserService(), petService: PetService = LivePetService()) {
+    init(userService: UserServiceProtocol = UserService(), petService: PetServiceProtocol = LivePetService()) {
         self.userService = userService
         self.petService = petService
     }

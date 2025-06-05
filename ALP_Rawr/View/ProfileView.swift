@@ -60,7 +60,7 @@ struct ProfileView: View {
                     InfoCard(
                         icon: "heart.fill",
                         title: "Pet Bond Level",
-                        content: petHomeViewModel.pet.bond.description,
+                        content: Int(petHomeViewModel.pet.bond).description,
                         iconColor: .pink,
                         backgroundColor: Color.pink.opacity(0.05)
                     )

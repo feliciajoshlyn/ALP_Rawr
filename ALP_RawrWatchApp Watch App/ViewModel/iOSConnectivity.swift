@@ -144,11 +144,12 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
                 "type": "walking",
                 "startWalking": true
             ]
+            // message startWalking ini disend supaya ngetrigger function di watchconnectivtiy
             
             session.sendMessage(dataToSend, replyHandler: { response in
                 DispatchQueue.main.async {
                     print("Walk message reply: \(response)")
-                    if let walkingStarted = response["walkingStarted"] as? Bool {
+                    if let walkingStarted = response["walkingStarted"] as? Bool { // direply sama iOS juga walkingStarted
                         self.walkingStarted = walkingStarted
                         self.isWalking = walkingStarted
                     }
@@ -161,6 +162,7 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
         }
     }
     
+    // setiap kali stop walking di watch, yang iOS juga harus otomatis stop
     func sendStopWalkingToiOS(){
         if session.isReachable {
             let dataToSend: [String : Any] = [
@@ -182,6 +184,8 @@ public class iOSConnectivity: NSObject, WCSessionDelegate, ObservableObject {
             print("Session is not reachable for stopping walking")
         }
     }
+    
+    
     func fetchEntriesFromiOS(_ session: WCSession, didReceiveMessage message : [String: Any]) {
         DispatchQueue.main.async {
             //make sure it's diary data

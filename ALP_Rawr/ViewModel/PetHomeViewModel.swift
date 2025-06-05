@@ -18,8 +18,8 @@ class PetHomeViewModel: ObservableObject{
     @Published var hasFetchData: Bool = false
     
     //PetService untuk function-function yang connect ke Realtime DB
-    private let petService: PetService
-
+    private let petService: PetServiceProtocol
+    
     //User untuk menerima dan nanti pakai atribut user yang lagi login
     private var user: User?
     private var userUid: String?
@@ -30,7 +30,7 @@ class PetHomeViewModel: ObservableObject{
     //Session untuk connect ke watch
     
     //PetService diinject melalui init
-    init(petService: PetService = LivePetService()) {
+    init(petService: PetServiceProtocol = LivePetService()) {
         self.petService = petService
     }
     
@@ -39,42 +39,42 @@ class PetHomeViewModel: ObservableObject{
         timer?.invalidate()
     }
     
-//    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
-//        if activationState == .activated && session.isReachable {
-//            self.sendPetToWatch(pet: self.pet)
-//        }
-//    }
-//    
-//    func sessionDidBecomeInactive(_ session: WCSession) {
-//        self.savePet()
-//    }
-//    
-//    func sessionDidDeactivate(_ session: WCSession) {
-//        self.savePet()
-//    }
+    //    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: (any Error)?) {
+    //        if activationState == .activated && session.isReachable {
+    //            self.sendPetToWatch(pet: self.pet)
+    //        }
+    //    }
+    //
+    //    func sessionDidBecomeInactive(_ session: WCSession) {
+    //        self.savePet()
+    //    }
+    //
+    //    func sessionDidDeactivate(_ session: WCSession) {
+    //        self.savePet()
+    //    }
     
-//    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
-//        print("📱 iOS received message: \(message)")
-//        DispatchQueue.main.async {
-//            print("Processing message on main thread")
-//            print("Received message: \(message)")
-//            var interactionType = InteractionType.feeding
-//            
-//            switch message["type"] as! String {
-//            case "feeding":
-//                interactionType = InteractionType.feeding
-//            case "petting":
-//                interactionType = InteractionType.petting
-//            default:
-//                break
-//            }
-//            
-//            self.applyInteraction(interactionType)
-//            print("Applied interaction, new hunger level: \(self.pet.hunger)")
-//        }
-//                
-//        self.sendPetToWatch(pet: self.pet)
-//    }
+    //    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+    //        print("📱 iOS received message: \(message)")
+    //        DispatchQueue.main.async {
+    //            print("Processing message on main thread")
+    //            print("Received message: \(message)")
+    //            var interactionType = InteractionType.feeding
+    //
+    //            switch message["type"] as! String {
+    //            case "feeding":
+    //                interactionType = InteractionType.feeding
+    //            case "petting":
+    //                interactionType = InteractionType.petting
+    //            default:
+    //                break
+    //            }
+    //
+    //            self.applyInteraction(interactionType)
+    //            print("Applied interaction, new hunger level: \(self.pet.hunger)")
+    //        }
+    //
+    //        self.sendPetToWatch(pet: self.pet)
+    //    }
     
     //Function untuk mengambil pet data, tidak bisa dijalankan di init karena membutuhkan user sudah login, sementara ViewModel ini dibuat bersamaan
     // dengan AuthViewModel, supaya bisa diakses di view-view lain pada aplikasi, dan saat AuthViewModel pertama dibuat, bisa saja belum ada user yang login
@@ -115,7 +115,7 @@ class PetHomeViewModel: ObservableObject{
         //Start timernya untuk periodic checking
         self.startTimer()
     }
-
+    
     //Function buat bikin default pet
     private func setupDefaultPet(){
         self.pet = PetModel(
@@ -151,7 +151,7 @@ class PetHomeViewModel: ObservableObject{
     //Value perubahan sudah diset di InteractionType untuk masing-masing interaction dan masing-masing mood/emotion
     func applyInteraction(_ type: InteractionType) {
         guard let changes = InteractionEffect.effects[type] else { return }
-
+        
         for (emotionName, num) in changes {
             if var emotion = pet.emotions[emotionName] {
                 emotion.apply(change: num)
@@ -162,6 +162,7 @@ class PetHomeViewModel: ObservableObject{
         //Tambahan yang perlu diset sesudah ada interaksi tertentu
         if type == .petting {
             pet.lastPetted = Date()
+            pet.bond += 0.5
         } else if type == .feeding {
             pet.lastFed = Date()
             pet.hunger = min(100.0, pet.hunger + 1.0)
@@ -181,13 +182,18 @@ class PetHomeViewModel: ObservableObject{
         
         //Set default kalau gaada emotion yang aktif jadi happy
         if activeEmotions.isEmpty {
-            self.currEmotion = "Happy"
-            self.icon = "happybadge"
-            return
+            if let highestLevelEmotion = pet.emotions.max(by: { $0.value.level < $1.value.level }) {
+                self.currEmotion = highestLevelEmotion.key
+                self.icon = highestLevelEmotion.value.icon
+            } else {
+                // Default ke happy
+                self.currEmotion = "Happy"
+                self.icon = "happybadge"
+            }
         }
         
         let sortedEmotions = activeEmotions.sorted {
-            return $0.value.priority > $1.value.priority
+            return $0.value.priority < $1.value.priority
         }
         
         if let topEmotion = sortedEmotions.first {
@@ -221,13 +227,13 @@ class PetHomeViewModel: ObservableObject{
         let hungerDecrease: Double = roundToDecimal(minutesPassed / 3.0, places: 1)
         pet.hunger = max(0.0, pet.hunger - hungerDecrease)
         pet.isHungry = pet.hunger < 40.0
-
+        
         // Hitung berapa jam sudah berlalu sejak dikasih makan, dielus, diajak jalan2, dimandiin
         let hoursSinceFed = now.timeIntervalSince(pet.lastFed) / 3600
         let hoursSincePetted = now.timeIntervalSince(pet.lastPetted) / 3600
         let hoursSinceWalked = now.timeIntervalSince(pet.lastWalked) / 3600
         let hoursSinceShowered = now.timeIntervalSince(pet.lastShower) / 3600
-
+        
         // Ubah HP berdasarkan status lapar
         if pet.hunger >= 50.0 {
             // Nambah HP nya kalau dia kenyang (gk lapar)
@@ -254,7 +260,7 @@ class PetHomeViewModel: ObservableObject{
                 
             }
         }
-
+        
         // Update emotion levels berdasarkan lama waktu gk diajak iteraksi
         for (name, emotion) in pet.emotions {
             var updated = emotion
@@ -325,7 +331,7 @@ class PetHomeViewModel: ObservableObject{
             //diupdate berdasarkan nama emotionnya
             pet.emotions[name] = updated
         }
-
+        
         //update terakhir dicek kapan
         self.pet.lastChecked = now
         //cek emosi ulang
@@ -333,56 +339,56 @@ class PetHomeViewModel: ObservableObject{
     }
     
     //Function simpanan buat kalau mau testing yang durasinya lebih cepat
-//    func updatePetStatusPeriodicallyFaster() {
-//        let now = Date()
-//        let lastChecked = pet.lastChecked
-//        let timePassed = now.timeIntervalSince(lastChecked) // in seconds
-//        
-//        guard timePassed >= 60 else { return } // Only update if at least 1 minute has passed
-//        
-//        let minutesPassed = Double(timePassed / 60.0)
-//        
-//        // Adjust Hunger (every minute decreases by 1)
-//        pet.hunger = max(0, pet.hunger - minutesPassed)
-//        pet.isHungry = pet.hunger < 40
-//
-//        // Adjust HP based on lack of interaction
-//        let hoursSinceFed = Double(now.timeIntervalSince(pet.lastFed) / 3600.0)
-//        let hoursSincePetted = Double(now.timeIntervalSince(pet.lastPetted) / 3600.0)
-//        let hoursSinceWalked = Double(now.timeIntervalSince(pet.lastWalked) / 3600.0)
-//        let hoursSinceShowered = Double(now.timeIntervalSince(pet.lastShower) / 3600.0)
-//
-//        // HP decays slightly if hunger is very low or if neglected
-//        if pet.hunger < 20.0 {
-//            pet.hp = max(0.0, pet.hp - minutesPassed / 2.0)
-//        }
-//        if hoursSinceFed > 6.0 || hoursSincePetted > 8.0 || hoursSinceWalked > 12.0 || hoursSinceShowered > 24.0 {
-//            pet.hp = max(0, pet.hp - minutesPassed / 3.0)
-//        }
-//
-//        // Increase emotion levels based on neglect
-//        for (name, emotion) in pet.emotions {
-//            var updated = emotion
-//            switch name {
-//            case "Sad":
-//                updated.level = min(100, updated.level + (hoursSincePetted > 8 ? minutesPassed / 3 : 0))
-//            case "Angry":
-//                updated.level = min(100, updated.level + (hoursSinceFed > 6 ? minutesPassed / 4 : 0))
-//            case "Bored":
-//                updated.level = min(100, updated.level + (hoursSinceWalked > 12 ? minutesPassed / 2 : 0))
-//            case "Fear":
-//                updated.level = min(100, updated.level + (hoursSinceShowered > 24 ? minutesPassed / 2 : 0))
-//            case "Happy":
-//                updated.level = max(0, updated.level - minutesPassed / 2)
-//            default:
-//                break
-//            }
-//            pet.emotions[name] = updated
-//        }
-//
-//        pet.lastChecked = now
-//        checkCurrEmotion()
-//    }
+    //    func updatePetStatusPeriodicallyFaster() {
+    //        let now = Date()
+    //        let lastChecked = pet.lastChecked
+    //        let timePassed = now.timeIntervalSince(lastChecked) // in seconds
+    //
+    //        guard timePassed >= 60 else { return } // Only update if at least 1 minute has passed
+    //
+    //        let minutesPassed = Double(timePassed / 60.0)
+    //
+    //        // Adjust Hunger (every minute decreases by 1)
+    //        pet.hunger = max(0, pet.hunger - minutesPassed)
+    //        pet.isHungry = pet.hunger < 40
+    //
+    //        // Adjust HP based on lack of interaction
+    //        let hoursSinceFed = Double(now.timeIntervalSince(pet.lastFed) / 3600.0)
+    //        let hoursSincePetted = Double(now.timeIntervalSince(pet.lastPetted) / 3600.0)
+    //        let hoursSinceWalked = Double(now.timeIntervalSince(pet.lastWalked) / 3600.0)
+    //        let hoursSinceShowered = Double(now.timeIntervalSince(pet.lastShower) / 3600.0)
+    //
+    //        // HP decays slightly if hunger is very low or if neglected
+    //        if pet.hunger < 20.0 {
+    //            pet.hp = max(0.0, pet.hp - minutesPassed / 2.0)
+    //        }
+    //        if hoursSinceFed > 6.0 || hoursSincePetted > 8.0 || hoursSinceWalked > 12.0 || hoursSinceShowered > 24.0 {
+    //            pet.hp = max(0, pet.hp - minutesPassed / 3.0)
+    //        }
+    //
+    //        // Increase emotion levels based on neglect
+    //        for (name, emotion) in pet.emotions {
+    //            var updated = emotion
+    //            switch name {
+    //            case "Sad":
+    //                updated.level = min(100, updated.level + (hoursSincePetted > 8 ? minutesPassed / 3 : 0))
+    //            case "Angry":
+    //                updated.level = min(100, updated.level + (hoursSinceFed > 6 ? minutesPassed / 4 : 0))
+    //            case "Bored":
+    //                updated.level = min(100, updated.level + (hoursSinceWalked > 12 ? minutesPassed / 2 : 0))
+    //            case "Fear":
+    //                updated.level = min(100, updated.level + (hoursSinceShowered > 24 ? minutesPassed / 2 : 0))
+    //            case "Happy":
+    //                updated.level = max(0, updated.level - minutesPassed / 2)
+    //            default:
+    //                break
+    //            }
+    //            pet.emotions[name] = updated
+    //        }
+    //
+    //        pet.lastChecked = now
+    //        checkCurrEmotion()
+    //    }
     
     //Function untuk menjalankan function yang mengecek secara berkala
     private func startTimer() {
@@ -428,23 +434,23 @@ class PetHomeViewModel: ObservableObject{
         timer?.invalidate()
     }
     
-//    func sendPetToWatch(pet: PetModel) {
-//        guard WCSession.default.isReachable else {
-//            print("Watch is not reachable.")
-//            return
-//        }
-//
-//        do {
-//            let encoder = JSONEncoder()
-//            encoder.dateEncodingStrategy = .iso8601 // Or `.millisecondsSince1970` — just match on both ends
-//            let data = try encoder.encode(pet)
-//            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-//                WCSession.default.sendMessage(["petData": json], replyHandler: nil) { error in
-//                    print("Error sending petData: \(error.localizedDescription)")
-//                }
-//            }
-//        } catch {
-//            print("Failed to encode PetModel: \(error)")
-//        }
-//    }
+    //    func sendPetToWatch(pet: PetModel) {
+    //        guard WCSession.default.isReachable else {
+    //            print("Watch is not reachable.")
+    //            return
+    //        }
+    //
+    //        do {
+    //            let encoder = JSONEncoder()
+    //            encoder.dateEncodingStrategy = .iso8601 // Or `.millisecondsSince1970` — just match on both ends
+    //            let data = try encoder.encode(pet)
+    //            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+    //                WCSession.default.sendMessage(["petData": json], replyHandler: nil) { error in
+    //                    print("Error sending petData: \(error.localizedDescription)")
+    //                }
+    //            }
+    //        } catch {
+    //            print("Failed to encode PetModel: \(error)")
+    //        }
+    //    }
 }

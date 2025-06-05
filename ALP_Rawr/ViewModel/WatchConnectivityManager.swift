@@ -41,6 +41,7 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
 #if os(iOS)
     @MainActor
     func setupViewModelObservers() {
+        // value nya bakal berubah terus makanya perlu remove dupkicates, supaya hanya baca satu boolean
         agePredictionVM?.$predictionResult
             .map { result in
                 result == "20-29" || result == "30-39" ||
@@ -48,6 +49,7 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
                 result == "60-69" || result == "more than 70"
             }
             .removeDuplicates()
+        // setiap kali value baru muncul, every result itu nanti akan ngerun if didalamnya
             .sink { [weak self] isParentPresent in
                 if isParentPresent {
                     self?.sendStatusToWatch()
@@ -55,7 +57,7 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
                     self?.shouldShowCameraView = false
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &cancellables) // ini yang akan observe setiap kali new value muncul
         
         // Observe walking state changes
         locationVM?.$isWalking
@@ -87,7 +89,7 @@ class WatchConnectivityManager: NSObject, @preconcurrency WCSessionDelegate, Obs
     
     @MainActor
     private func startWalkingDataTimer() {
-        // Stop any existing timer
+
         stopWalkingDataTimer()
         
         // Send initial data immediately
@@ -166,7 +168,7 @@ func injectViewModels(
                     if let startWalking = message["startWalking"] as? Bool, startWalking == true {
                         if self.agePredictionVM?.isParentPresent == true {
                             self.locationVM?.startWalking()
-                            replyHandler(["walkingStarted": true])
+                            replyHandler(["walkingStarted": true]) // ngereply ke watch udah true bro
                             print("Walking started from watch request")
                             
                             // Send initial walking data immediately
@@ -247,7 +249,7 @@ func injectViewModels(
     
 #if os(iOS)
     @MainActor
-    private func stopWalkingAndSave() {
+    private func stopWalkingAndSave() { // untuk setiap kali stop, data itu kesend ke watch
         guard let locationVM = locationVM, let walkingVM = walkingVM else { return }
         
         locationVM.stopWalking()
@@ -264,15 +266,13 @@ func injectViewModels(
         }
     }
     
+    // send status dari isParentPresent -> supaya bisa trigger parent verified dan ubah state merah jadi ijo
     @MainActor
     func sendStatusToWatch() {
         guard WCSession.default.isReachable else { return }
         
         let isParentPresent = agePredictionVM?.isParentPresent ?? false
         let predictionResult = agePredictionVM?.predictionResult ?? "none"
-        
-        print("DEBUG - Prediction result: '\(predictionResult)'")
-        print("DEBUG - Is parent present: \(isParentPresent)")
         
         let status: [String: Any] = [
             "isParentVerified": isParentPresent,
@@ -282,9 +282,11 @@ func injectViewModels(
         WCSession.default.sendMessage(status, replyHandler: nil) { error in
             print("Error sending status to watch: \(error.localizedDescription)")
         }
-        print("Sent status to watch: \(status)")
+        
     }
     
+    
+    // untuk send data walknya ke watch untuk difetch
     @MainActor
     func sendWalkingDataToWatch() {
         guard WCSession.default.isReachable,
